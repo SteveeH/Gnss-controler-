@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://ssl.gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="msapplication-tap-highlight" content="no">
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+        <link rel="stylesheet" type="text/css" href="css/index.css">
+        <link rel="stylesheet" type="text/css" href="css/style.css">
+        <title>Blank App</title>
+    </head>
+    <body>
+        
+        <header>hlavička
+            <div class="settings">
+                <button id="settings">ST</button>
+            </div>
+        </header>
+        <div id="change">
+            <h1>Pokusná applikace Hodik v.0.0.1</h1>
+            <p id="platform">Platforma: ???</p>
+            <p id="model">Model: ???</p>
+            <p id="serial">Seriové číslo: ???</p>
+            <button id="tlacitko"> Najdi dostupná zařízení BLE</button>
+            <!--div id="bleList" class="BLE">
+                tady budou vypsaná dostupna zařízení.... 
+            </div--> 
+        </div>
+        <footer>
+            <nav class="nav_bar"> 
+                    <button id="domov" >HM</button>
+                    <button id="mereni">MR</button>
+                    <button id="vytyceni">VT</button>
+                    <button id="skyplot">SP</button>
+            </nav>
+        </footer>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+        <script type="text/javascript" src="js/ble.js"></script>
+        <script type="text/javascript" src="app.js"></script>
+    </body>
+</html>

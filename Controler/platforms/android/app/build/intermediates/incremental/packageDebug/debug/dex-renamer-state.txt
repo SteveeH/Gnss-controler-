@@ -1,0 +1,4 @@
+#Tue Feb 26 00:18:26 CET 2019
+base.0=C\:\\Users\\Steve\\Documents\\skola\\DIPLOMKA\\APP\\Controler\\platforms\\android\\app\\build\\intermediates\\transforms\\dexMerger\\debug\\0
+path.0=classes.dex
+renamed.0=classes.dex

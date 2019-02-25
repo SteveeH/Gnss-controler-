@@ -1,0 +1,27 @@
+{
+  "prepare_queue": {
+    "installed": [],
+    "uninstalled": []
+  },
+  "config_munge": {
+    "files": {}
+  },
+  "installed_plugins": {
+    "cordova-plugin-bluetooth-serial": {
+      "PACKAGE_NAME": "com.cordova.cor1app"
+    },
+    "cordova-plugin-device": {
+      "PACKAGE_NAME": "com.cordova.cor1app"
+    },
+    "cordova-plugin-vibration": {
+      "PACKAGE_NAME": "com.cordova.cor1app"
+    },
+    "cordova-plugin-whitelist": {
+      "PACKAGE_NAME": "com.cordova.cor1app"
+    },
+    "cordova-plugin-simple-toast": {
+      "PACKAGE_NAME": "com.cordova.cor1app"
+    }
+  },
+  "dependent_plugins": {}
+}
