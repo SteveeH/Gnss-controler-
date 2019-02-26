@@ -64,7 +64,32 @@ function zacatekAplikace(){
     //bleList();
     eventy();
     //alert("strZarizeni \n"+ strZarizeni);
+    
 }
+
+function populateDB(tx) {
+    tx.executeSql('DROP TABLE IF EXISTS DEMO');
+    tx.executeSql('CREATE TABLE IF NOT EXISTS DEMO (id unique, data)');
+    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (1, "First row")');
+    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (2, "Second row")');
+}
+
+function populateDB2(tx) {
+    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (3, "heureka")');
+    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (4, "cjiejcie")');
+}
+
+// Transaction error callback
+    //
+    function errorCB(tx, err) {
+        alert("Error processing SQL: "+err);
+    }
+
+    // Transaction success callback
+    //
+    function successCB() {
+        alert("success!");
+    }
 
 
 function udelejToast(text){
@@ -98,10 +123,12 @@ function nahrajHodnoty(){
 
 
 function eventy(){
-    document.getElementById("domov").addEventListener("click",function (){udelejToast("Domov!")},false);
+    document.getElementById("domov").addEventListener("click",function (){udelejToast("Domov!");console.log("domov");},false);
     document.getElementById("mereni").addEventListener("click",function (){udelejToast("Mereni!")},false);
     document.getElementById("vytyceni").addEventListener("click",function (){udelejToast("Vytyceni!")},false);
-    document.getElementById("skyplot").addEventListener("click",function (){udelejToast("Skyplot!")},false);
+    document.getElementById("skyplot").addEventListener("click",function (){var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
+    db.transaction(populateDB2, errorCB, successCB);},false);
     document.getElementById("settings").addEventListener("click",function (){bleAlert();},false);
-    document.getElementById("tlacitko").addEventListener("click",function (){aalert(zz)},false);
+    document.getElementById("tlacitko").addEventListener("click",function (){var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
+    db.transaction(populateDB, errorCB, successCB);},false);
 }
