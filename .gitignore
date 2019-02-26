@@ -12,3 +12,10 @@ gen
 out
 # Gradle builds
 /build
+platforms/*
+*.bin
+*.log
+
+
+
+
