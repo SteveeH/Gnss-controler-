@@ -28,6 +28,26 @@ function BLE(){
     }); 
 } 
 
+
+function BLE2(){
+    bluetoothSerial.discoverUnpaired(function(devices) {
+        var countDevices = devices.length;
+        var counter = 1; 
+        zz=[];
+        devices.forEach(function(device) { 
+         zz.push(device);
+         counter++;
+         if (counter>countDevices){
+             aalert(zz);
+             console.log(JSON.stringify(zz));
+            }
+        })
+    }, function(er){
+        alert(er)
+    }); 
+} 
+
+
 /* function BLE(){
     bluetoothSerial.list(function(devices) {
         devices.forEach(function(device) { 
@@ -57,10 +77,19 @@ function BLE(){
 function aalert(obj){
     alert(JSON.stringify(obj));
 }
-
+ 
 function bleAlert(){
-    BLE();
-    //alert("tohle ma být na konci");
+    BLE2();
+    
+    /* bluetoothSerial.enable(
+        function() {
+            udelejToast("Bluetooth je zaplé.");
+        },
+        function() {
+            udelejToast("Bluetooth je vypnuté.");
+        }
+    ); */
+    
 }
 
 

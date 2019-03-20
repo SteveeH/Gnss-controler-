@@ -13,11 +13,11 @@
     <body>
         
         <header>hlavička
-            <div class="settings">
-                <button id="settings">ST</button>
+            <div class="nastaveni">
+                <button id="nastaveni"><img src="img/settings-work-tool.svg"></button>
             </div>
         </header>
-        <div id="change"> <!-- tady se budou vkládat jednotlivá okna a bude to hustý.. -->
+        <div id="plocha"> <!-- tady se budou vkládat jednotlivá okna a bude to hustý.. -->
             <h1>Pokusná applikace Hodik v.0.0.1</h1>
             <p id="platform">Platforma: ???</p>
             <p id="model">Model: ???</p>
@@ -29,15 +29,17 @@
         </div>
         <footer>
             <nav class="nav_bar"> 
-                    <button id="domov" >HM</button>
-                    <button id="mereni">MR</button>
-                    <button id="vytyceni">VT</button>
-                    <button id="skyplot">SP</button>
+                <button id="domov"><img src="img/home.svg"></button>
+                <button id="mereni"><img src="img/gps-localization-interface-symbol.svg"></button>
+                <button id="vytyceni"><img src="img/pointer-spot-tool-for-maps.svg"></button>
+                <button id="skyplot"><img src="img/moon-orbit-around-earth.svg"></button>
             </nav>
         </footer>
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript" src="js/index.js"></script>
         <script type="text/javascript" src="js/ble.js"></script>
+        <script type="text/javascript" src="js/nmea.js"></script>
+        <script type="text/javascript" src="js/skyplott.js"></script>
         <!--script type="text/javascript" src="app.js"></script-->
     </body>
 </html>
