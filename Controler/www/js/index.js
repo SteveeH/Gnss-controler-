@@ -40,13 +40,16 @@ var app = {
     document.addEventListener("deviceready", app.init);
   },
   init: function() {
-    eventy();
-    nahrajHodnoty();
-    pripojArduino();
+    domov();
     aktivOkno("domov");
-    var intt = setInterval(function() {
+    eventy();
+    cordova.plugins.Keyboard.disableScroll(true);
+
+    /* nahrajHodnoty(); //tohle uz nepotrebuji
+    pripojArduino(); */
+    /* var intt = setInterval(function() {
       nactiData(gnnsPripojeno);
-    }, 1000);
+    }, 1000); */
     document.addEventListener("pause", app.paused);
     document.addEventListener("resume", app.resumed);
   },
@@ -78,8 +81,6 @@ app.initialize();
         console.log("aa");
     }
 } */
-
-//var intt = setInterval(function(){(interval)?tikani(interval):clearInterval(intt);},1000);
 
 function nactiData(pripojeno) {
   // tato funkce zkontroluje pripojeni k arduinu/gnns prijimaci a pokud je pripojen, zacne
@@ -196,6 +197,7 @@ function eventy() {
     "click",
     function() {
       domov();
+      aktivOkno("domov");
     },
     false
   );
@@ -203,6 +205,7 @@ function eventy() {
     "click",
     function() {
       mereni();
+      aktivOkno("mereni");
     },
     false
   );
@@ -210,6 +213,7 @@ function eventy() {
     "click",
     function() {
       vytycovani();
+      aktivOkno("vytycovani");
     },
     false
   );
@@ -217,19 +221,34 @@ function eventy() {
     "click",
     function() {
       skyplot();
+      aktivOkno("skyplot");
     },
     false
   );
   document.getElementById("nastaveni").addEventListener(
     "click",
     function() {
-      bleAlert();
+      nastaveni();
+      aktivOkno("nastaveni");
     },
     false
   );
-  document.getElementById("tlacitko").addEventListener("click", function() {});
+
+  //document.getElementById("tlacitko").addEventListener("click", function() {});
   //document.getElementById("tlacitko").addEventListener("click",function (){var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
   //db.transaction(populateDB, errorCB, successCB);},false);
+
+  // Prehravani zvuku - musi byt zavedena uplna cesta k souborum
+  /* var troubeni = new Media(
+    "/android_asset/www/sound/tuut.mp3",
+    function() {
+      console.log("hraji");
+    },
+    function(err) {
+      console.log("nehraji:" + JSON.stringify(err));
+    }
+  );
+  troubeni.play(); */
 
   document.addEventListener(
     "backbutton",
@@ -252,15 +271,19 @@ function zpet() {
   switch (predchoziOkno) {
     case "#domov":
       domov();
+      aktivOkno("domov");
       break;
     case "#mereni":
       mereni();
+      aktivOkno("mereni");
       break;
     case "#vytyc":
       vytycovani();
+      aktivOkno("vytycovani");
       break;
     case "#skyplot":
       skyplot();
+      aktivOkno("skyplot");
       break;
   }
 }
@@ -268,16 +291,14 @@ function zpet() {
 function domov() {
   app.history.push("#domov");
   window.location.hash = "domov";
-  aktivOkno("domov");
   var rodic = document.getElementById("plocha");
   vymazPlochu(rodic);
-  rodic.innerText = "Domov";
+  rodic.innerText = "Domov ....";
 }
 
 function mereni() {
   app.history.push("#mereni");
   window.location.hash = "mereni";
-  aktivOkno("mereni");
   var rodic = document.getElementById("plocha");
   vymazPlochu(rodic);
   rodic.innerText = "Měření";
@@ -286,7 +307,7 @@ function mereni() {
 function vytycovani() {
   app.history.push("#vytyc");
   window.location.hash = "vytyc";
-  aktivOkno("vytycovani");
+  //aktivOkno("vytycovani");
   var rodic = document.getElementById("plocha");
   vymazPlochu(rodic);
   rodic.innerText = "Vytyčování";
@@ -295,7 +316,7 @@ function vytycovani() {
 function skyplot() {
   app.history.push("#skyplot");
   window.location.hash = "skyplot";
-  aktivOkno("skyplot");
+  //aktivOkno("skyplot");
   var rodic = document.getElementById("plocha");
   vymazPlochu(rodic);
 
@@ -304,6 +325,26 @@ function skyplot() {
   sky = setInterval(function() {
     SKY();
   }, 1000);
+}
+
+function nastaveni() {
+  app.history.push("#nastav");
+  window.location.hash = "nastav";
+  var rodic = document.getElementById("plocha");
+  vymazPlochu(rodic);
+  rodic.innerHTML = htmlNastaveni;
+
+  var bleHledej = document.getElementById("ble_hledej");
+  var bleIkona = document.getElementById("ble_ikon");
+
+  bleHledej.addEventListener(
+    "click",
+    function() {
+      bleHledej.className = "rotate_slow";
+      bleIkona.src = "img/ble_finding.svg";
+    },
+    false
+  );
 }
 
 function vymazPlochu(rodic) {
@@ -316,65 +357,53 @@ function vymazPlochu(rodic) {
 function aktivOkno(okno) {
   var zmacknuto = "rgb(50,50,50)";
   var nezmacknuto = "rgb(79,79,79)";
-  var domov = document.getElementById("domov");
-  var mereni = document.getElementById("mereni");
-  var vytyceni = document.getElementById("vytyceni");
-  var sp = document.getElementById("skyplot");
-  var nastaveni = document.getElementById("nataveni");
+  var BtDomov = document.getElementById("domov");
+  var BtMereni = document.getElementById("mereni");
+  var BtVytyceni = document.getElementById("vytyceni");
+  var BtSkyplot = document.getElementById("skyplot");
+  var BtNastaveni = document.getElementById("nastaveni");
 
   switch (okno) {
     case "domov":
-      /* domov.disabled = true;
-            mereni.disabled = false;
-            vytyceni.disabled = false;
-            skyplot.disabled = false;
-            nastaveni.disabled = false; */
       // zmena barvy
-      domov.style.backgroundColor = zmacknuto;
-      mereni.style.backgroundColor = nezmacknuto;
-      vytyceni.style.backgroundColor = nezmacknuto;
-      sp.style.backgroundColor = nezmacknuto;
-      break;
+      BtDomov.style.backgroundColor = zmacknuto;
+      BtMereni.style.backgroundColor = nezmacknuto;
+      BtVytyceni.style.backgroundColor = nezmacknuto;
+      BtSkyplot.style.backgroundColor = nezmacknuto;
+      BtNastaveni.className = "";
+      return;
     case "mereni":
-      /* domov.disabled = false;
-            mereni.disabled = true;
-            vytyceni.disabled = false;
-            skyplot.disabled = false;
-            nastaveni.disabled = false; */
       // zmena barvy
-      domov.style.backgroundColor = nezmacknuto;
-      mereni.style.backgroundColor = zmacknuto;
-      vytyceni.style.backgroundColor = nezmacknuto;
-      sp.style.backgroundColor = nezmacknuto;
-      break;
+      BtDomov.style.backgroundColor = nezmacknuto;
+      BtMereni.style.backgroundColor = zmacknuto;
+      BtVytyceni.style.backgroundColor = nezmacknuto;
+      BtSkyplot.style.backgroundColor = nezmacknuto;
+      BtNastaveni.className = "";
+      return;
     case "vytycovani":
-      /* domov.disabled = false;
-            mereni.disabled = false;
-            vytyceni.disabled = true;
-            skyplot.disabled = false;
-            nastaveni.disabled = false; */
       // zmena barvy
-      domov.style.backgroundColor = nezmacknuto;
-      mereni.style.backgroundColor = nezmacknuto;
-      vytyceni.style.backgroundColor = zmacknuto;
-      sp.style.backgroundColor = nezmacknuto;
-      break;
+      BtDomov.style.backgroundColor = nezmacknuto;
+      BtMereni.style.backgroundColor = nezmacknuto;
+      BtVytyceni.style.backgroundColor = zmacknuto;
+      BtSkyplot.style.backgroundColor = nezmacknuto;
+      BtNastaveni.className = "";
+      return;
     case "skyplot":
-      /*  domov.disabled = false;
-            mereni.disabled = false;
-            vytyceni.disabled = false;
-            skyplot.disabled = true;
-            nastaveni.disabled = false; */
       // zmena barvy
-      domov.style.backgroundColor = nezmacknuto;
-      mereni.style.backgroundColor = nezmacknuto;
-      vytyceni.style.backgroundColor = nezmacknuto;
-      sp.style.backgroundColor = zmacknuto;
-      break;
-    /* TODO 
-        case "nastaveni":
-        
-        break; */
+      BtDomov.style.backgroundColor = nezmacknuto;
+      BtMereni.style.backgroundColor = nezmacknuto;
+      BtVytyceni.style.backgroundColor = nezmacknuto;
+      BtSkyplot.style.backgroundColor = zmacknuto;
+      BtNastaveni.className = "";
+      return;
+    case "nastaveni":
+      // zmena barvy
+      BtDomov.style.backgroundColor = nezmacknuto;
+      BtMereni.style.backgroundColor = nezmacknuto;
+      BtVytyceni.style.backgroundColor = nezmacknuto;
+      BtSkyplot.style.backgroundColor = nezmacknuto;
+      BtNastaveni.className = "rotate_slow";
+      return;
   }
 }
 
@@ -401,3 +430,6 @@ function populateDB2(tx) {
     function successCB() {
         alert("success!");
     } */
+
+var htmlNastaveni =
+  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""> <img src="img/refresh.svg"/> </button> <select id="ble_seznam"> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> </select> <button id="ble_pripoj"> PŘIPOJ BLE </button> </div></div><hr/> <div class="nast"> <p>Nastavení hotspot připojení</p><input type="text" placeholder="Název přístupového bodu"/> <input type="text" placeholder="Heslo"/> </div><hr/> <div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..."/> <input type="text" placeholder="port..."/> <br/> <button>MoutnPointy</button> <br/> <select id="mount_seznam"> <option value="mount1">M1</option> <option value="mount2">M2</option> <option value="mount3">M3</option> </select> <br/> <input type="text" placeholder="Uživatelské jméno"/> <input type="password" placeholder="Heslo"/> <button>Připoj</button> </div><hr/> <div class="nast"> <p>Nastavení zvuku</p></div>';
