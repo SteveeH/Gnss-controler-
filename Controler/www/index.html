@@ -14,18 +14,19 @@
     />
     <link rel="stylesheet" type="text/css" href="css/index.css" />
     <link rel="stylesheet" type="text/css" href="css/style.css" />
-    <title>Blank App</title>
+    <link rel="stylesheet" type="text/css" href="css/style-domov.css" />
+    <title>CVUT gnss controler</title>
   </head>
   <body>
     <header>
       <div class="info">
         <div>
-          <img src="img/ble_disconnected.svg" id="ble_ikon" />
+          <img src="img/ble_disconnected.svg" id="INFble" />
         </div>
         <div class="fix">
           <svg
             version="1.1"
-            id="pp"
+            id="INFfix"
             xmlns="http://www.w3.org/2000/svg"
             xmlns:xlink="http://www.w3.org/1999/xlink"
             x="0px"
@@ -40,32 +41,17 @@
                 d="M409.133,109.203c-19.608-33.592-46.205-60.189-79.798-79.796C295.736,9.801,259.058,0,219.273,0c-39.781,0-76.47,9.801-110.063,29.407c-33.595,19.604-60.192,46.201-79.8,79.796C9.801,142.8,0,179.489,0,219.267c0,39.78,9.804,76.463,29.407,110.062c19.607,33.592,46.204,60.189,79.799,79.798c33.597,19.605,70.283,29.407,110.063,29.407s76.47-9.802,110.065-29.407c33.593-19.602,60.189-46.206,79.795-79.798c19.603-33.596,29.403-70.284,29.403-110.062C438.533,179.485,428.732,142.795,409.133,109.203z"
               />
             </g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
-            <g></g>
           </svg>
         </div>
         <div>
           <img
             src="img/half-battery-energy-status-symbol.svg"
-            id="bater_ikon"
+            id="INFbaterka"
           />
         </div>
         <div class="sat">
           <img src="img/radio-control.svg" />
-          <span id="pocet_satelitu">0/0</span>
+          <span id="INFsatelity">0/0</span>
         </div>
       </div>
       <div class="nastaveni">
@@ -75,14 +61,15 @@
       </div>
     </header>
     <div id="plocha" class="plocha">
-      <div class="nast">
+      <div></div>
+      <!--  <div class="nast">
         <p>Nastavení bluetooth připojení:</p>
 
         <div>
           <button id="ble_hledej" class="">
             <img src="img/refresh.svg" />
           </button>
-          <select id="ble_seznam">
+          <select id="seznamBLE">
             <option value="bt1">BT1</option>
             <option value="bt2">BT2</option>
             <option value="bt3">BT3ceeceeceecececece</option>
@@ -96,11 +83,17 @@
       <hr />
 
       <div class="nast">
+        <p>Umístění souborů</p>
+
+        <button id="BTvytvorSoubor">Vytvoř soubor</button>
+      </div>
+      <hr />
+
+      <div class="nast">
         <p>Nastavení hotspot připojení</p>
         <input type="text" placeholder="Název přístupového bodu" />
         <input type="text" placeholder="Heslo" />
       </div>
-
       <hr />
 
       <div class="nast">
@@ -123,7 +116,7 @@
       <hr />
       <div class="nast">
         <p>Nastavení zvuku</p>
-      </div>
+      </div> -->
     </div>
     <footer>
       <nav class="nav_bar">
@@ -131,8 +124,8 @@
         <button id="mereni">
           <img src="img/gps-localization-interface-symbol.svg" />
         </button>
-        <button id="vytyceni">
-          <img src="img/pointer-spot-tool-for-maps.svg" />
+        <button id="dron">
+          <img src="img/drone.svg" />
         </button>
         <button id="skyplot">
           <img src="img/moon-orbit-around-earth.svg" />
@@ -144,6 +137,7 @@
     <script type="text/javascript" src="js/ble.js"></script>
     <script type="text/javascript" src="js/nmea.js"></script>
     <script type="text/javascript" src="js/skyplott.js"></script>
+    <script type="text/javascript" src="js/domov.js"></script>
     <!--script type="text/javascript" src="app.js"></script-->
   </body>
 </html>

@@ -1,52 +1,62 @@
-
-
-var zarizeni={
-    class: [],
-    id: [],
-    address: [],
-    name: []    
+var zarizeni = {
+  class: [],
+  id: [],
+  address: [],
+  name: []
 };
 
-zz=[];
-
+zz = [];
 
 var strZarizeni;
 
+function BLE() {
+  bluetoothSerial.list(
+    function(devices) {
+      var countDevices = devices.length;
+      var counter = 1;
+      zz = [];
+      devices.forEach(function(device) {
+        zz.push(device);
+        counter++;
+        if (counter > countDevices) {
+          aalert(zz);
+        }
+      });
+    },
+    function(er) {
+      alert(er);
+    }
+  );
+}
 
-function BLE(){
-    bluetoothSerial.list(function(devices) {
-        var countDevices = devices.length;
-        var counter = 1; 
-        zz=[];
-        devices.forEach(function(device) { 
-         zz.push(device);
-         counter++;
-         if (counter>countDevices){aalert(zz);}
-        })
-    }, function(er){
-        alert(er)
-    }); 
-} 
+//bluetoothSerial.discoverUnpaired(function(devices)
+function dostupnaBleZarizeni() {
+  var zarList = [];
 
+  bluetoothSerial.list(
+    function(devices) {
+      var countDevices = devices.length;
+      var counter = 1;
 
-function BLE2(){
-    bluetoothSerial.discoverUnpaired(function(devices) {
-        var countDevices = devices.length;
-        var counter = 1; 
-        zz=[];
-        devices.forEach(function(device) { 
-         zz.push(device);
-         counter++;
-         if (counter>countDevices){
-             aalert(zz);
-             console.log(JSON.stringify(zz));
-            }
-        })
-    }, function(er){
-        alert(er)
-    }); 
-} 
+      devices.forEach(function(device) {
+        zarList.push(device);
+        counter++;
+        if (counter > countDevices) {
+          var BTbleHledej = document.getElementById("ble_hledej");
+          BTbleHledej.className = "";
+          console.log("Uvnitr BLE: " + zarList);
+        }
+      });
+    },
+    function(er) {
+      alert(er);
+    }
+  );
+  console.log("Uvnitr zarizeni: " + zarList);
+  return zarList;
+}
 
+function zobrazBle(zz) {}
 
 /* function BLE(){
     bluetoothSerial.list(function(devices) {
@@ -56,7 +66,7 @@ function BLE2(){
             zarizeni.id.push(device.id);
             zarizeni.address.push(device.address);
             zarizeni.name.push(device.name); */
-            /*var dd={
+/*var dd={
                 name: device.name,
                 id: device.id,
                 address: device.address
@@ -70,18 +80,14 @@ function BLE2(){
     }); 
 }  */
 
-
-
-
-
-function aalert(obj){
-    alert(JSON.stringify(obj));
+function aalert(obj) {
+  alert(JSON.stringify(obj));
 }
- 
-function bleAlert(){
-    BLE2();
-    
-    /* bluetoothSerial.enable(
+
+function bleAlert() {
+  BLE2();
+
+  /* bluetoothSerial.enable(
         function() {
             udelejToast("Bluetooth je zaplé.");
         },
@@ -89,9 +95,7 @@ function bleAlert(){
             udelejToast("Bluetooth je vypnuté.");
         }
     ); */
-    
 }
-
 
 /*
 function bleList(){

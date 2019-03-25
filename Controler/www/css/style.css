@@ -245,6 +245,10 @@ div.nast div {
   /* background-color: blue; */
 }
 
+input {
+  margin-top: 5px;
+}
+
 button.rotate {
   animation-name: otocka;
   animation-duration: 1.5s;
