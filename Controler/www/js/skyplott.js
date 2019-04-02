@@ -33,8 +33,11 @@ function vykresliSatelity(objekt, maxPolomer, sirka, vyska, typ) {
   // vyhledani aktivnich satelitu v GSA zprave
   var aktivniSatelity = []
 
-  aktivniSatelity.concat(DATA.GSA.GP)
-  aktivniSatelity.concat(DATA.GSA.GL)
+  DATA.GSA.GP.forEach(sat => aktivniSatelity.push(sat))
+  DATA.GSA.GL.forEach(sat => aktivniSatelity.push(sat))
+
+  /* aktivniSatelity.concat(DATA.GSA.GP)
+  aktivniSatelity.concat(DATA.GSA.GL) */
 
   /*  console.log("AKTIV: " + aktivniSatelity); */
 
@@ -53,10 +56,11 @@ function vykresliSatelity(objekt, maxPolomer, sirka, vyska, typ) {
     if (typ == 0) {
       ctx.beginPath()
       ctx.strokeStyle = "black"
-      /*  console.log(el);
-      console.log(aktivniSatelity.includes(parseInt(el.id))); */
-      ctx.fillStyle = "green"
-      ctx.lineWidth = 2
+      ctx.fillStyle = aktivniSatelity.includes(parseInt(el.id))
+        ? "green"
+        : "red"
+
+      ctx.lineWidth = 1
       ctx.arc(pozSatX, pozSatY, maxPolomer / 15, 0, 2 * Math.PI)
       ctx.fill()
       ctx.stroke()
@@ -64,7 +68,6 @@ function vykresliSatelity(objekt, maxPolomer, sirka, vyska, typ) {
       var diff = maxPolomer / 8
       ctx.beginPath()
       ctx.strokeStyle = "black"
-      /* console.log(el.id); */
       ctx.fillStyle = aktivniSatelity.includes(parseInt(el.id))
         ? "green"
         : "red"

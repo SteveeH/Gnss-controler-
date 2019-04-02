@@ -31,7 +31,7 @@ var gnnsPripojeno = false
 
 var BLUETOOTH
 var database = new Databaze()
-var idZAKAZKY = 5
+var idZAKAZKY = 1 // zde se bude nacitat posledni nactena zakazka
 
 var DATA = {
   GGA: { LAT: 0, LON: 0, ALT: 0, SEP: 0, NUMSAT: 0 },
@@ -62,10 +62,10 @@ var app = {
     aktivOkno("domov")
 
     /* nahrajHodnoty(); //tohle uz nepotrebuji*/
-    /*  pripojArduino()
+    /*  pripojArduino() */
     var intt = setInterval(function() {
       nactiData(gnnsPripojeno)
-    }, 1000) */
+    }, 1000)
     document.addEventListener("pause", app.paused)
     document.addEventListener("resume", app.resumed)
   },
@@ -111,8 +111,8 @@ function nactiData(pripojeno) {
       false
     )
   } else {
-    console.log("nepripojeno")
-    pripojArduino()
+    /* console.log("nepripojeno")
+    pripojArduino() */
   }
 }
 
@@ -217,14 +217,6 @@ function pripojArduino() {
     }
   )
 }
-
-/* function nahrajHodnoty() {
-  document.getElementById("platform").innerHTML =
-    "Platforma:  " + device.platform;
-  document.getElementById("model").innerHTML = "Model:  " + device.model;
-  document.getElementById("serial").innerHTML =
-    "Seriové číslo:  " + device.serial;
-} */
 
 function eventy() {
   document.getElementById("domov").addEventListener(
@@ -372,6 +364,8 @@ function nastaveni() {
   vymazPlochu(rodic)
   rodic.innerHTML = HTMLnastaveni
 
+  eventyNastaveni()
+
   /* var BTvytvorSoubor = document.getElementById("BTvytvorSoubor");
   var BTbleHledej = document.getElementById("ble_hledej");
   var bleIkona = document.getElementById("ble_ikon");
@@ -396,17 +390,20 @@ function nastaveni() {
   ); */
 }
 
-function createFile() {
-  var type = window.TEMPORARY
+/* function createFile() {
+  var type = window.PERSISTENT //PERSISTENT
   var size = 5 * 1024 * 1024
   window.requestFileSystem(type, size, successCallback, errorCallback)
 
   function successCallback(fs) {
+    console.log(fs)
+    console.log(fs.root)
     fs.root.getFile(
-      "log.txt",
+      "mojeAPP.txt",
       { create: true, exclusive: true },
       function(fileEntry) {
-        alert("File creation successfull!")
+        alert("File creation successfull! " + fileEntry)
+        console.log("File creation successfull! " + fileEntry)
       },
       errorCallback
     )
@@ -415,7 +412,7 @@ function createFile() {
   function errorCallback(error) {
     alert("ERROR: " + error.code)
   }
-}
+} */
 
 function vymazPlochu(rodic) {
   // tato funkce vymaze vsechny potomky daneho oddilu
@@ -505,4 +502,6 @@ var HTMLnastaveni =
   '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""> <img src="img/refresh.svg"/> </button> <select id="ble_seznam"> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> </select> <button id="ble_pripoj"> PŘIPOJ BLE </button> </div></div><hr/> <div class="nast"> <p>Nastavení hotspot připojení</p><input type="text" placeholder="Název přístupového bodu"/> <input type="text" placeholder="Heslo"/> </div><hr/> <div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..."/> <input type="text" placeholder="port..."/> <br/> <button>MoutnPointy</button> <br/> <select id="mount_seznam"> <option value="mount1">M1</option> <option value="mount2">M2</option> <option value="mount3">M3</option> </select> <br/> <input type="text" placeholder="Uživatelské jméno"/> <input type="password" placeholder="Heslo"/> <button>Připoj</button> </div><hr/> <div class="nast"> <p>Nastavení zvuku</p></div>'
 
 var HTMLdomov =
-  '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p><p id="INFOpocetLetu">Počet letů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Praha</option> <option value="">brno</option> <option value="">dušníky</option> </select> </div><button>Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 51.976 51.976" style="enable-background:new 0 0 51.976 51.976;" xml:space="preserve" > <g> <path d="M44.373,7.603c-10.137-10.137-26.632-10.138-36.77,0c-10.138,10.138-10.137,26.632,0,36.77s26.632,10.138,36.77,0C54.51,34.235,54.51,17.74,44.373,7.603z M36.241,36.241c-0.781,0.781-2.047,0.781-2.828,0l-7.425-7.425l-7.778,7.778c-0.781,0.781-2.047,0.781-2.828,0c-0.781-0.781-0.781-2.047,0-2.828l7.778-7.778l-7.425-7.425c-0.781-0.781-0.781-2.048,0-2.828c0.781-0.781,2.047-0.781,2.828,0l7.425,7.425l7.071-7.071c0.781-0.781,2.047-0.781,2.828,0c0.781,0.781,0.781,2.047,0,2.828l-7.071,7.071l7.425,7.425C37.022,34.194,37.022,35.46,36.241,36.241z"/> </g> </svg> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div></div>'
+  '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p><p id="INFOpocetLetu">Počet letů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Vytvoř zakázku</option> </select> </div><button>Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTimportBodu">Importuj body</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 51.976 51.976" style="enable-background:new 0 0 51.976 51.976;" xml:space="preserve" > <g> <path d="M44.373,7.603c-10.137-10.137-26.632-10.138-36.77,0c-10.138,10.138-10.137,26.632,0,36.77s26.632,10.138,36.77,0C54.51,34.235,54.51,17.74,44.373,7.603z M36.241,36.241c-0.781,0.781-2.047,0.781-2.828,0l-7.425-7.425l-7.778,7.778c-0.781,0.781-2.047,0.781-2.828,0c-0.781-0.781-0.781-2.047,0-2.828l7.778-7.778l-7.425-7.425c-0.781-0.781-0.781-2.048,0-2.828c0.781-0.781,2.047-0.781,2.828,0l7.425,7.425l7.071-7.071c0.781-0.781,2.047-0.781,2.828,0c0.781,0.781,0.781,2.047,0,2.828l-7.071,7.071l7.425,7.425C37.022,34.194,37.022,35.46,36.241,36.241z"/> </g> </svg> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div></div>'
+
+var HTMLmereni = '<div class="domov"></div>'

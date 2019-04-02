@@ -18,6 +18,8 @@
     <allow-intent href="geo:*" />
     <preference name="Orientation" value="portrait" />
     <preference name="StatusBarBackgroundColor" value="#202020" />
+    <preference name="AndroidPersistentFileLocation" value="Compatibility" />
+    <preference name="AndroidExtraFilesystems" value="files,cache, sdcard, cache-external, files-external" />
     <platform name="android">
         <allow-intent href="market:*" />
     </platform>

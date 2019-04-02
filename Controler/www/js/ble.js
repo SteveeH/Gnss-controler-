@@ -3,57 +3,109 @@ var zarizeni = {
   id: [],
   address: [],
   name: []
-};
+}
 
-zz = [];
+zz = []
 
-var strZarizeni;
+var strZarizeni
 
-function BLE() {
+function BLEzobrazSparovanaZarizeni() {
   bluetoothSerial.list(
     function(devices) {
-      var countDevices = devices.length;
-      var counter = 1;
-      zz = [];
-      devices.forEach(function(device) {
-        zz.push(device);
-        counter++;
-        if (counter > countDevices) {
-          aalert(zz);
+      let SELble = document.getElementById("ble_seznam")
+      let BTbleHledej = document.getElementById("ble_hledej")
+      let pocet = devices.length
+      let html = ""
+
+      if (pocet > 0) {
+        for (let i = 0; i < pocet; i++) {
+          html += "<option value="
+          html += devices[i]["address"]
+          html += ">"
+          html += devices[i].hasOwnProperty("name")
+            ? devices[i]["name"]
+            : devices[i]["id"]
+          html += "</option>"
         }
-      });
+
+        SELble.innerHTML = html
+        BTbleHledej.className = ""
+      }
     },
     function(er) {
-      alert(er);
+      alert(er)
     }
-  );
+  )
+}
+
+function BLEzobrazNEsparovanaZarizeni() {
+  bluetoothSerial.discoverUnpaired(
+    function(devices) {
+      let SELble = document.getElementById("ble_seznam")
+      let BTbleHledej = document.getElementById("ble_hledej")
+      let pocet = devices.length
+      let html = ""
+
+      if (pocet > 0) {
+        for (let i = 0; i < pocet; i++) {
+          html += "<option value="
+          html += devices[i]["address"]
+          html += ">"
+          html += devices[i].hasOwnProperty("name")
+            ? devices[i]["name"]
+            : devices[i]["id"]
+          html += "</option>"
+        }
+        SELble.innerHTML = html
+        BTbleHledej.className = ""
+      }
+      udelejToast("Počet nalezených zařízení: " + pocet)
+    },
+    function(er) {
+      alert(er)
+    }
+  )
+}
+
+function BLEpripojZarizeni(adresa) {
+  bluetoothSerial.connect(
+    adresa,
+    function() {
+      console.log("Zařízení připojeno..")
+      gnnsPripojeno = true
+    },
+    function() {
+      console.log("Zařízení se nepodařilo připojit..")
+      gnnsPripojeno = false
+    }
+  )
 }
 
 //bluetoothSerial.discoverUnpaired(function(devices)
 function dostupnaBleZarizeni() {
-  var zarList = [];
+  var zarList = []
 
   bluetoothSerial.list(
     function(devices) {
-      var countDevices = devices.length;
-      var counter = 1;
+      var countDevices = devices.length
+      var counter = 1
 
       devices.forEach(function(device) {
-        zarList.push(device);
-        counter++;
+        zarList.push(device)
+        counter++
         if (counter > countDevices) {
-          var BTbleHledej = document.getElementById("ble_hledej");
-          BTbleHledej.className = "";
-          console.log("Uvnitr BLE: " + zarList);
+          var BTbleHledej = document.getElementById("ble_hledej")
+          BTbleHledej.className = ""
+          console.log("Uvnitr BLE: " + zarList)
         }
-      });
+      })
     },
     function(er) {
-      alert(er);
+      alert(er)
     }
-  );
-  console.log("Uvnitr zarizeni: " + zarList);
-  return zarList;
+  )
+  console.log("Uvnitr zarizeni: " + zarList)
+  return zarList
 }
 
 function zobrazBle(zz) {}
@@ -81,11 +133,11 @@ function zobrazBle(zz) {}
 }  */
 
 function aalert(obj) {
-  alert(JSON.stringify(obj));
+  alert(JSON.stringify(obj))
 }
 
 function bleAlert() {
-  BLE2();
+  BLE2()
 
   /* bluetoothSerial.enable(
         function() {

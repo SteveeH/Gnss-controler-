@@ -20,6 +20,7 @@ function eventyDomov() {
   var BTexportMereni = document.getElementById("BTexportMereni")
   var BTzalozZakazku = document.getElementById("BTzalozZakazku")
   var BTvymazZakazku = document.getElementById("BTvymazZakazku")
+  var BTimportBodu = document.getElementById("BTimportBodu")
   var Select = document.getElementById("seznamZakazek")
 
   var INPnazevZakazky = document.getElementById("INPnazevZakazky")
@@ -74,7 +75,33 @@ function eventyDomov() {
   })
 
   BTexportMereni.addEventListener("click", () => {
-    udelejToast("Měření exportováno...")
+    database.exportujZakazku(idZAKAZKY)
+  })
+
+  BTimportBodu.addEventListener("click", () => {
+    // Otevreni nativni aplikace, kde se vybere soubor, ktery se ma
+    // souradnice bodu
+
+    // link:
+    //https://ourcodeworld.github.io/cordova/cordova-filebrowser.html
+    window.OurCodeWorld.Filebrowser.filePicker.single({
+      success: function(data) {
+        if (!data.length) {
+          // Zadny soubor neni vybran
+          return
+        }
+        //
+        //  Zde se budou nahrávat data do databaze
+        //
+
+        console.log(data)
+        // Pole s cestou k souboru
+        // ["file:///storage/emulated/0/CVUT_gnss/2/2_body.txt"]
+      },
+      error: function(err) {
+        console.log(err)
+      }
+    })
   })
 
   Select.addEventListener("change", () => {

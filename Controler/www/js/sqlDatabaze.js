@@ -26,20 +26,30 @@ Databaze.prototype.vytvorTabulky = function() {
       "CREATE TABLE IF NOT EXISTS zakazky (id  INTEGER PRIMARY KEY AUTOINCREMENT, nazev UNIQUE NOT NULL, datum CHAR, popis TEXT)",
       [],
       function(sqlTransaction, sqlResultSet) {
-        /*  console.log("Table zakazky been created.") */
+        /*  console.log("Tabulka zakazky byla zalozena.") */
       },
       function(sqlTransaction, sqlError) {
-        console.log("Table zakazky err: " + sqlError)
+        console.log("Table zakazky err: " + sqlError.message)
       }
     )
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS body (id  INTEGER PRIMARY KEY AUTOINCREMENT, idZakazky INTEGER, nazevBodu INT UNIQUE, lat FLOAT, lon FLOAT, alt FLOAT, sep FLOAT, vyska FLOAT, date_added TIMESTAMP DEFAULT (datetime('now','localtime')))",
+      "CREATE TABLE IF NOT EXISTS body (id INTEGER PRIMARY KEY AUTOINCREMENT, idZakazky INTEGER, nazevBodu INT NOT NULL, lat FLOAT, lon FLOAT, alt FLOAT, sep FLOAT, vyska FLOAT, datum TIMESTAMP DEFAULT (datetime('now','localtime')), typ CHAR)",
       [],
       function(sqlTransaction, sqlResultSet) {
-        /* console.log("Table body been created.") */
+        /* console.log("Tabulka body byla zalozena.") */
       },
       function(sqlTransaction, sqlError) {
-        console.log("Table body err: " + sqlError)
+        console.log("Table body err: " + sqlError.message)
+      }
+    )
+    tx.executeSql(
+      "INSERT INTO zakazky (id,nazev,datum) SELECT 1,'Testovaci zakazka',datetime('now','localtime') WHERE NOT EXISTS (SELECT * FROM zakazky)",
+      [],
+      function(sqlTransaction, sqlResultSet) {
+        console.log("Zadne zakazky nenalezeny -> vytvorena testovaci zakazka.")
+      },
+      function(sqlTransaction, sqlError) {
+        console.log("Vytvoreni testovaci zakazky err : " + sqlError.message)
       }
     )
     /* tx.executeSql(
@@ -104,8 +114,8 @@ Databaze.prototype.ulozBod = function(
 ) {
   this.mydb.transaction(function(tx) {
     tx.executeSql(
-      "INSERT INTO body (idZakazky, nazevBodu, lat, lon, alt, sep,vyska) VALUES (?,?,?,?,?,?,?)",
-      [idZakazky, nazev, lat, lon, alt, sep, vyska],
+      "INSERT INTO body (idZakazky, nazevBodu, lat, lon, alt, sep,vyska,typ) VALUES (?,?,?,?,?,?,?,?)",
+      [idZakazky, nazev, lat, lon, alt, sep, vyska, "mer"],
       function(tx, rs) {
         console.log(rs)
         console.log(tx)
@@ -128,6 +138,75 @@ Databaze.prototype.nactiBody = function(idZakazky) {
       },
       function(tx, er) {
         console.log(er)
+      }
+    )
+  })
+}
+
+Databaze.prototype.exportujZakazku = function(idZakazky) {
+  let txt = ""
+  let nazevZak = ""
+
+  var DB = this.mydb
+
+  this.mydb.transaction(function(transaction) {
+    transaction.executeSql(
+      "SELECT nazev,datum FROM zakazky WHERE id=?",
+      [idZakazky],
+      function(tx, rs) {
+        txt += "Název zakázky : " + rs.rows[0]["nazev"] + "\n"
+        txt += "Datum vytvoření : " + rs.rows[0]["datum"] + "\n"
+
+        nazevZak = rs.rows[0]["nazev"]
+
+        DB.transaction(function(transaction) {
+          transaction.executeSql(
+            "SELECT * FROM body WHERE idZakazky=?",
+            [idZakazky],
+            function(tx, rs) {
+              let pocetBodu = rs.rows.length
+
+              txt += "Počet bodů : " + pocetBodu + "\n"
+              txt += "==========================================\n"
+              txt += "|nazev b.|lat|lon|alt|sep|vyska ant.|datum\n"
+              txt += "==========================================\n"
+
+              for (let i = 0; i < pocetBodu; i++) {
+                let nazev = rs.rows[i]["nazevBodu"]
+                let lat = rs.rows[i]["lat"]
+                let lon = rs.rows[i]["lon"]
+                let alt = rs.rows[i]["alt"]
+                let sep = rs.rows[i]["sep"]
+                let vyska = rs.rows[i]["vyska"]
+                let datum = rs.rows[i]["datum"]
+
+                txt +=
+                  nazev +
+                  "," +
+                  lat +
+                  "," +
+                  lon +
+                  "," +
+                  alt +
+                  "," +
+                  sep +
+                  "," +
+                  vyska +
+                  "," +
+                  datum +
+                  "\n"
+              }
+
+              exportujMereni(nazevZak, txt)
+            },
+            function(tx, er) {
+              console.log(er)
+            }
+          )
+        })
+      },
+      function(tx, er) {
+        console.log(er.message)
       }
     )
   })

@@ -12,6 +12,7 @@
     "dependencies": {
         "cordova-android": "^7.1.4",
         "cordova-browser": "^5.0.4",
+        "cordova-ourcodeworld-filebrowser": "git+https://github.com/ourcodeworld/cordova-ourcodeworld-filebrowser.git",
         "cordova-plugin-background-fetch": "^5.4.1",
         "cordova-plugin-background-service": "^1.3.5",
         "cordova-plugin-badge": "^0.8.8",
@@ -43,7 +44,9 @@
             },
             "cordova-plugin-media": {},
             "ionic-plugin-keyboard": {},
-            "cordova-plugin-camera": {}
+            "cordova-plugin-camera": {},
+            "cordova-plugin-file": {},
+            "com.ourcodeworld.plugins.Filebrowser": {}
         },
         "platforms": [
             "android",
