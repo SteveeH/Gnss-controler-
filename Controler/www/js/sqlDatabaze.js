@@ -117,8 +117,24 @@ Databaze.prototype.ulozBod = function(
       "INSERT INTO body (idZakazky, nazevBodu, lat, lon, alt, sep,vyska,typ) VALUES (?,?,?,?,?,?,?,?)",
       [idZakazky, nazev, lat, lon, alt, sep, vyska, "mer"],
       function(tx, rs) {
+        /*  console.log(rs)
+        console.log(tx) */
+      },
+      function(tx, e) {
+        console.log("Error: " + e.message)
+      }
+    )
+  })
+}
+
+Databaze.prototype.importujBod = function(idZakazky, nazev, lat, lon, alt) {
+  this.mydb.transaction(function(tx) {
+    tx.executeSql(
+      "INSERT INTO body (idZakazky, nazevBodu, lat, lon, alt,vyska,typ) VALUES (?,?,?,?,?,?,?)",
+      [idZakazky, nazev, lat, lon, alt, 0, "imp"],
+      function(tx, rs) {
         console.log(rs)
-        console.log(tx)
+        /*console.log(tx) */
       },
       function(tx, e) {
         console.log("Error: " + e.message)
@@ -332,4 +348,26 @@ Databaze.prototype.infoZakazka = function(idZakazky) {
       }
     )
   })
+}
+
+function importDat(data) {
+  // urci pocet bodu
+  let pocet = Object.keys(data).length
+
+  for (let i = 0; i < pocet; i++) {
+    let nazevBodu = data[i][0]
+    let lat = parseFloat(data[i][1])
+    let lon = parseFloat(data[i][2])
+    let alt = parseFloat(data[i][3])
+    console.log("Imp:")
+    console.log("Nazev bodu: " + nazevBodu)
+    console.log("sirka: " + lat)
+    console.log("delka: " + lon)
+    console.log("vyska: " + alt)
+    console.log("========================")
+    database.importujBod(idZAKAZKY, nazevBodu, lat, lon, alt)
+  }
+
+  udelejToast("Počet importovaných bodů : " + pocet)
+  database.infoZakazka(idZAKAZKY)
 }

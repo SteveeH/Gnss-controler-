@@ -338,16 +338,57 @@ function mereni() {
 function dron() {
   app.history.push("#dron")
   window.location.hash = "dron"
-  //aktivOkno("vytycovani");
   var rodic = document.getElementById("plocha")
   vymazPlochu(rodic)
   rodic.innerText = "Dron...."
+
+  var az = setInterval(zobrazAzimuth(), 500)
+
+  function zobrazAzimuth() {
+    var SUC = function(position) {
+      console.log(
+        "Latitude: " +
+          position.coords.latitude +
+          "\n" +
+          "Longitude: " +
+          position.coords.longitude +
+          "\n" +
+          "Altitude: " +
+          position.coords.altitude +
+          "\n" +
+          "Accuracy: " +
+          position.coords.accuracy +
+          "\n" +
+          "Altitude Accuracy: " +
+          position.coords.altitudeAccuracy +
+          "\n" +
+          "Heading: " +
+          position.coords.heading +
+          "\n" +
+          "Speed: " +
+          position.coords.speed +
+          "\n" +
+          "Timestamp: " +
+          position.timestamp +
+          "\n"
+      )
+    }
+
+    // onError Callback receives a PositionError object
+    //
+    function ER(error) {
+      console.log(
+        "code: " + error.code + "\n" + "message: " + error.message + "\n"
+      )
+    }
+
+    navigator.geolocation.getCurrentPosition(SUC, ER)
+  }
 }
 
 function skyplot() {
   app.history.push("#skyplot")
   window.location.hash = "skyplot"
-  //aktivOkno("skyplot");
   var rodic = document.getElementById("plocha")
   vymazPlochu(rodic)
   ;[maxPolomer, sirka, vyska, ctx, canvas] = vytvorSkyplot()
@@ -365,54 +406,7 @@ function nastaveni() {
   rodic.innerHTML = HTMLnastaveni
 
   eventyNastaveni()
-
-  /* var BTvytvorSoubor = document.getElementById("BTvytvorSoubor");
-  var BTbleHledej = document.getElementById("ble_hledej");
-  var bleIkona = document.getElementById("ble_ikon");
-  console.log("Nastaveni: " + dostupnaBleZarizeni());
-
-  BTvytvorSoubor.addEventListener(
-    "click",
-    function() {
-      createFile();
-    },
-    false
-  );
-
-  BTbleHledej.addEventListener(
-    "click",
-    function() {
-      BTbleHledej.className = "rotate_slow";
-      bleIkona.src = "img/ble_finding.svg";
-      BLUETOOTH = dostupnaBleZarizeni();
-    },
-    false
-  ); */
 }
-
-/* function createFile() {
-  var type = window.PERSISTENT //PERSISTENT
-  var size = 5 * 1024 * 1024
-  window.requestFileSystem(type, size, successCallback, errorCallback)
-
-  function successCallback(fs) {
-    console.log(fs)
-    console.log(fs.root)
-    fs.root.getFile(
-      "mojeAPP.txt",
-      { create: true, exclusive: true },
-      function(fileEntry) {
-        alert("File creation successfull! " + fileEntry)
-        console.log("File creation successfull! " + fileEntry)
-      },
-      errorCallback
-    )
-  }
-
-  function errorCallback(error) {
-    alert("ERROR: " + error.code)
-  }
-} */
 
 function vymazPlochu(rodic) {
   // tato funkce vymaze vsechny potomky daneho oddilu
@@ -473,30 +467,6 @@ function aktivOkno(okno) {
       return
   }
 }
-
-/* function populateDB(tx) {
-    tx.executeSql('DROP TABLE IF EXISTS DEMO');
-    tx.executeSql('CREATE TABLE IF NOT EXISTS DEMO (id unique, data)');
-    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (1, "First row")');
-    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (2, "Second row")');
-}
-
-function populateDB2(tx) {
-    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (3, "heureka")');
-    tx.executeSql('INSERT INTO DEMO (id, data) VALUES (4, "cjiejcie")');
-}
-
-// Transaction error callback.
-    //
-    function errorCB(tx, err) {
-        alert("Error processing SQL: "+err);
-    }
-
-    // Transaction success callback
-    //
-    function successCB() {
-        alert("success!");
-    } */
 
 var HTMLnastaveni =
   '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""> <img src="img/refresh.svg"/> </button> <select id="ble_seznam"> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> <option value="bt1">BT1</option> <option value="bt2">BT2</option> <option value="bt3">BT3ceeceeceecececece</option> <option value="bt4">BT4</option> </select> <button id="ble_pripoj"> PŘIPOJ BLE </button> </div></div><hr/> <div class="nast"> <p>Nastavení hotspot připojení</p><input type="text" placeholder="Název přístupového bodu"/> <input type="text" placeholder="Heslo"/> </div><hr/> <div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..."/> <input type="text" placeholder="port..."/> <br/> <button>MoutnPointy</button> <br/> <select id="mount_seznam"> <option value="mount1">M1</option> <option value="mount2">M2</option> <option value="mount3">M3</option> </select> <br/> <input type="text" placeholder="Uživatelské jméno"/> <input type="password" placeholder="Heslo"/> <button>Připoj</button> </div><hr/> <div class="nast"> <p>Nastavení zvuku</p></div>'

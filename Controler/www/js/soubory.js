@@ -20,6 +20,8 @@ function SSOubor(name) {
 }
 
 function importujMereni(filePath) {
+  // funkce otevre soubor se seznamem bodů pro import
+  // format dat: [| cislo bodu | lat | lon | alt |]
   window.requestFileSystem(
     LocalFileSystem.PERSISTENT,
     0,
@@ -30,18 +32,14 @@ function importujMereni(filePath) {
         function(fileEntry) {
           // Vytvori se objekt predstavujici soubor,
           // ktery se nasledne precte pomoci FileReader.
-          console.log(fileEntry)
 
           fileEntry.file(function(file) {
             var reader = new FileReader()
 
             reader.onloadend = function(e) {
-              /* var txtArea = document.createElement("textarea")
-              txtArea.value = this.result
-              document.body.appendChild(txtArea) */
               console.log(this.result)
+              rozdeleniDat(this.result)
             }
-
             reader.readAsText(file)
           }, onError)
         },
@@ -104,4 +102,16 @@ function exportujMereni(jmenoZakazky, info) {
 
 function onError(e) {
   console.log(e)
+}
+
+function rozdeleniDat(txt) {
+  let roz1 = txt.split("\n")
+  let pocet = roz1.length
+  let vysledek = {}
+
+  for (let i = 0; i < pocet; i++) {
+    vysledek[i] = roz1[i].split(",")
+  }
+
+  importDat(vysledek)
 }

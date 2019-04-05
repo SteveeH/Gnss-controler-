@@ -90,13 +90,11 @@ function eventyDomov() {
           // Zadny soubor neni vybran
           return
         }
-        //
-        //  Zde se budou nahrávat data do databaze
-        //
-
-        console.log(data)
         // Pole s cestou k souboru
-        // ["file:///storage/emulated/0/CVUT_gnss/2/2_body.txt"]
+        // data = ["file:///storage/emulated/0/CVUT_gnss/2/2_body.txt"]
+        // extrahovani cesty k souboru
+        // napr.  ["CVUT_gnss/2/2_body.txt"]
+        importujMereni(data[0].slice(26))
       },
       error: function(err) {
         console.log(err)
