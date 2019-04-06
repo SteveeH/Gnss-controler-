@@ -1,4 +1,3 @@
-/* var htmlDomov = "" */
 function aktualniDatum() {
   var ad = new Date()
 
@@ -20,12 +19,15 @@ function eventyDomov() {
   var BTexportMereni = document.getElementById("BTexportMereni")
   var BTzalozZakazku = document.getElementById("BTzalozZakazku")
   var BTvymazZakazku = document.getElementById("BTvymazZakazku")
+  var BTzobrazUlozeneBody = document.getElementById("BTzobrazUlozeneBody")
   var BTimportBodu = document.getElementById("BTimportBodu")
   var Select = document.getElementById("seznamZakazek")
 
   var INPnazevZakazky = document.getElementById("INPnazevZakazky")
   var INPdatum = document.getElementById("INPdatum")
   var INPpopis = document.getElementById("INPpopis")
+
+  var BTzavriBody = document.getElementById("BTzavriBody")
 
   // EVENTY
   BTplus.addEventListener("click", () => {
@@ -108,7 +110,56 @@ function eventyDomov() {
     database.infoZakazka(Select.value)
   })
 
+  BTzobrazUlozeneBody.addEventListener("click", () => {
+    document.getElementById("modalBody").style.display = "block"
+
+    database.nactiBodyZakazky(idZAKAZKY, seznamUlozenychBodu)
+  })
+
+  BTzavriBody.addEventListener("click", () => {
+    document.getElementById("modalBody").style.display = "none"
+  })
   // NASTAVENI
 
   INPdatum.value = aktualniDatum()
+}
+
+function seznamUlozenychBodu(data) {
+  let pocet = data.length
+  let modalBodySeznam = document.getElementById("modalBodySeznam")
+  let htmlSeznam = ""
+
+  for (let i = 0; i < pocet; i++) {
+    htmlSeznam +=
+      '<div class="bod">' +
+      '<div class="info">' +
+      "<p><b>" +
+      data[i].nazevBodu +
+      "</b></p>" +
+      "<p>Zem. šířka: " +
+      data[i].lat +
+      "°</p>" +
+      "<p>Zem. délka: " +
+      data[i].lon +
+      "°</p>" +
+      "<p>Výška : " +
+      data[i].alt +
+      " m</p>" +
+      "</div>" +
+      '<button onclick="function(this){vymazBod(this)}" value="' +
+      data[i].id +
+      '"><img src="img/delete.svg" /></button></div>'
+  }
+
+  modalBodySeznam.innerHTML = htmlSeznam
+}
+
+function vymazBod(tlac) {
+  let rodic = tlac.parentNode
+  let prarodic = rodic.parentNode
+
+  if (confirm("Opravdu chcete vymazat bod ?")) {
+    prarodic.removeChild(rodic)
+    database.vymazBod(tlac.value)
+  }
 }

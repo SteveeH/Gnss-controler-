@@ -76,9 +76,6 @@ Databaze.prototype.vytvorZakazku = function(jmenoZakazky, datum, popis) {
         database.infoZakazka(rs.insertId)
         Select.value = rs.insertId
         idZAKAZKY = rs.insertId
-
-        /* console.log(tx)
-        console.log(rs) */
       },
       function(tx, e) {
         console.log("Error: " + e.message)
@@ -143,14 +140,13 @@ Databaze.prototype.importujBod = function(idZakazky, nazev, lat, lon, alt) {
   })
 }
 
-Databaze.prototype.nactiBody = function(idZakazky) {
+Databaze.prototype.nactiBodyZakazky = function(idZakazky, funkce) {
   this.mydb.transaction(function(transaction) {
     transaction.executeSql(
-      "SELECT * FROM body WHERE idZakazky=?",
+      "SELECT * FROM body WHERE idZakazky=? ORDER BY nazevBodu",
       [idZakazky],
       function(tx, rs) {
-        console.log(JSON.stringify(rs.rows))
-        return rs.rows
+        funkce(rs.rows)
       },
       function(tx, er) {
         console.log(er)
@@ -320,7 +316,6 @@ Databaze.prototype.infoZakazka = function(idZakazky) {
   let INFOnazevZakazky = document.getElementById("INFOnazevZakazky")
   let INFOdatumVytvoreni = document.getElementById("INFOdatumVytvoreni")
   let INFOpocetBodu = document.getElementById("INFOpocetBodu")
-  let INFOpocetLetu = document.getElementById("INFOpocetLetu")
 
   this.mydb.transaction(function(transaction) {
     transaction.executeSql(

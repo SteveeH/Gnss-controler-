@@ -20,6 +20,7 @@
         "cordova-plugin-bluetooth-serial2": "^0.4.6",
         "cordova-plugin-camera": "^4.0.3",
         "cordova-plugin-device": "^2.0.2",
+        "cordova-plugin-device-orientation": "^2.0.1",
         "cordova-plugin-file": "^6.0.1",
         "cordova-plugin-geolocation": "^4.0.1",
         "cordova-plugin-local-notification": "git+https://github.com/katzer/cordova-plugin-local-notifications.git",
@@ -48,7 +49,8 @@
             "cordova-plugin-camera": {},
             "cordova-plugin-file": {},
             "com.ourcodeworld.plugins.Filebrowser": {},
-            "cordova-plugin-geolocation": {}
+            "cordova-plugin-geolocation": {},
+            "cordova-plugin-device-orientation": {}
         },
         "platforms": [
             "android",
