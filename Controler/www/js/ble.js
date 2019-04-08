@@ -59,7 +59,7 @@ function BLEzobrazNEsparovanaZarizeni() {
         SELble.innerHTML = html
         BTbleHledej.className = ""
       }
-      udelejToast("Počet nalezených zařízení: " + pocet)
+      udelejToast("Počet nalezených zařízení: " + pocet, 500)
     },
     function(er) {
       alert(er)
@@ -73,10 +73,14 @@ function BLEpripojZarizeni(adresa) {
     function() {
       console.log("Zařízení připojeno..")
       gnnsPripojeno = true
+      INFble.src = "img/ble_connected.svg"
+      udelejToast("Zařízení připojeno..", 500)
     },
     function() {
       console.log("Zařízení se nepodařilo připojit..")
       gnnsPripojeno = false
+      INFble.src = "img/ble_disconnected.svg"
+      udelejToast("Zařízení se nepodařilo připojit..", 500)
     }
   )
 }
@@ -141,10 +145,10 @@ function bleAlert() {
 
   /* bluetoothSerial.enable(
         function() {
-            udelejToast("Bluetooth je zaplé.");
+            udelejToast("Bluetooth je zaplé.",500);
         },
         function() {
-            udelejToast("Bluetooth je vypnuté.");
+            udelejToast("Bluetooth je vypnuté.",500);
         }
     ); */
 }
@@ -174,7 +178,7 @@ function vypisBleList(){
     var pocet=zarizeni.name.length;
 
     if (pocet<1){
-        udelejToast("K dispozici nejsou žádná zařízení!")
+        udelejToast("K dispozici nejsou žádná zařízení!",500)
     }
     else{
          var t="";

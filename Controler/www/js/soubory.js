@@ -84,7 +84,7 @@ function exportujMereni(jmenoZakazky, info) {
                     // Novy blob - vlozeni naseho textu
                     /* var blob = new Blob(info, { type: "text/plain" }) */
                     fileWriter.write(info)
-                    udelejToast("Měření exportováno...")
+                    udelejToast("Měření exportováno...", 500)
                   }, onError)
                 },
                 onError

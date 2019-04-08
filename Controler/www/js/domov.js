@@ -40,7 +40,7 @@ function eventyDomov() {
 
   BTzalozZakazku.addEventListener("click", () => {
     if (INPnazevZakazky.value === "") {
-      udelejToast("Vyplň název zakázky..")
+      udelejToast("Vyplň název zakázky..", 500)
     } else {
       database.vytvorZakazku(
         INPnazevZakazky.value,
@@ -118,6 +118,7 @@ function eventyDomov() {
 
   BTzavriBody.addEventListener("click", () => {
     document.getElementById("modalBody").style.display = "none"
+    domov()
   })
   // NASTAVENI
 
@@ -137,21 +138,37 @@ function seznamUlozenychBodu(data) {
       data[i].nazevBodu +
       "</b></p>" +
       "<p>Zem. šířka: " +
-      data[i].lat +
+      Round(data[i].lat, 9) +
       "°</p>" +
       "<p>Zem. délka: " +
-      data[i].lon +
+      Round(data[i].lon, 9) +
       "°</p>" +
       "<p>Výška : " +
-      data[i].alt +
+      Round(data[i].alt, 4) +
       " m</p>" +
       "</div>" +
-      '<button onclick="function(this){vymazBod(this)}" value="' +
+      '<button class="vymazBod" value="' +
       data[i].id +
       '"><img src="img/delete.svg" /></button></div>'
   }
 
   modalBodySeznam.innerHTML = htmlSeznam
+
+  eventyVymazBod()
+}
+
+function eventyVymazBod() {
+  let body = document.getElementsByClassName("vymazBod")
+
+  for (var i = 0; i < body.length; i++) {
+    body[i].addEventListener(
+      "click",
+      function() {
+        vymazBod(this)
+      },
+      false
+    )
+  }
 }
 
 function vymazBod(tlac) {
@@ -162,4 +179,12 @@ function vymazBod(tlac) {
     prarodic.removeChild(rodic)
     database.vymazBod(tlac.value)
   }
+}
+
+function Round(num, precision) {
+  var val = 1
+  for (var i = 0; i < precision; i++) {
+    val = val * 10
+  }
+  return Math.round(num * val) / val
 }

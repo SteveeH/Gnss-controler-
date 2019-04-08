@@ -155,6 +155,21 @@ Databaze.prototype.nactiBodyZakazky = function(idZakazky, funkce) {
   })
 }
 
+Databaze.prototype.posledniBodZakazky = function(idZakazky, funkce) {
+  this.mydb.transaction(function(transaction) {
+    transaction.executeSql(
+      "SELECT * FROM body WHERE idZakazky=? ORDER BY datum DESC LIMIT 1",
+      [idZakazky],
+      function(tx, rs) {
+        funkce(rs.rows)
+      },
+      function(tx, er) {
+        console.log(er)
+      }
+    )
+  })
+}
+
 Databaze.prototype.exportujZakazku = function(idZakazky) {
   let txt = ""
   let nazevZak = ""
@@ -363,6 +378,6 @@ function importDat(data) {
     database.importujBod(idZAKAZKY, nazevBodu, lat, lon, alt)
   }
 
-  udelejToast("Počet importovaných bodů : " + pocet)
+  udelejToast("Počet importovaných bodů : " + pocet, 500)
   database.infoZakazka(idZAKAZKY)
 }
