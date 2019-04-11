@@ -47,7 +47,8 @@ var DATA = {
     differentialRefStn: ""
   },
   GSV: { GP: [], GL: [] },
-  GSA: { GP: [], GL: [], HDOP: 0, PDOP: 0, VDOP: 0 }
+  GSA: { GP: [], GL: [], HDOP: 0, PDOP: 0, VDOP: 0 },
+  GST: { DEVlat: 0, DEVlon: 0, DEValt: 0 }
 }
 
 var DRUZICE = {
@@ -57,8 +58,9 @@ var DRUZICE = {
 
 // globalni promena pro ukonceni intervalu funkce
 var intInfoMereni = null
-var intMereni
-var intVytyceni
+var intMereni = null
+var intVytyceni = null
+var BodVytyc
 var sky
 var pozadi = false
 
@@ -141,7 +143,8 @@ function nactiData(pripojeno) {
           differentialRefStn: ""
         },
         GSV: { GP: [], GL: [] },
-        GSA: { GP: [], GL: [], HDOP: 0, PDOP: 0, VDOP: 0 }
+        GSA: { GP: [], GL: [], HDOP: 0, PDOP: 0, VDOP: 0 },
+        GST: { DEVlat: 0, DEVlon: 0, DEValt: 0 }
       }
 
       DRUZICE = {
@@ -173,6 +176,13 @@ function prekladNMEA(veta, ulozeni) {
     // nic
   } else if (veta.slice(3, 6) === "ARD") {
     // informace poslane arduinem : stav baterie, pripojeni/odpojeni wifi atd.
+  } else if (veta.slice(3, 6) === "GST") {
+    // informace o presnosti mereni
+    let rozdel = veta.split(",")
+
+    DATA.GST.DEVlat = parseFloat(rozdel[6])
+    DATA.GST.DEVlon = parseFloat(rozdel[7])
+    DATA.GST.DEValt = parseFloat(rozdel[8].slice(0, -3))
   } else {
     var preklad = nmeaParse(veta)
     ulozeni(preklad)
@@ -395,7 +405,10 @@ function dron() {
   window.location.hash = "dron"
   var rodic = document.getElementById("plocha")
   vymazPlochu(rodic)
-  rodic.innerText = "Dron...."
+
+  rodic.innerHTML = HTMLvytyceni
+
+  eventyVytyceni()
 
   /*  var az = setInterval(() => {
     zobrazAzimuth()
@@ -507,3 +520,6 @@ var HTMLdomovOld =
 
 var HTMLmereni =
   '<div class="mereni"> <label for="nazevBodu">Název bodu :</label> <input type="text" id="MERnazevBodu"/> <label for="vyskaAnteny">Výška antény [m] :</label> <input type="number" id="MERvyskaAnteny"/> <p class="zobrazCas" id="MERzobrazCas">0:01:50</p><input type="range" min="10" max="300" step="5" value="10" class="Slider" id="SliderDobaMereni"/> <button id="BTmereni">MĚŘ</button> <hr/> <table> <tr> <th>Doba měření :</th> <td id="MERcas">0:00:00</td></tr><tr> <th>Zem. šířka :</th> <td id="MERzemSirka"></td></tr><tr> <th>Zem. délka :</th> <td id="MERzemDelka"></td></tr><tr> <th>Výška :</th> <td id="MERvyska"></td></tr><tr> <th>PDOP :</th> <td id="MERpdop"></td></tr></table> </div></div>'
+
+var HTMLvytyceni =
+  '<div class="vytyceni"> <p><b id="VYTcisloBodu">Vytyčení bodu:</b></p><canvas id="VYTcanvas"></canvas> <hr/> <table> <tr> <th>Vzdálenost k bodu :</th> <td id="VYTvzdalBod"></td></tr><tr> <th id="VYTsj">Jdi na sever :</th> <td id="VYTsjHodnota"></td></tr><tr> <th id="VYTvz">Jdi na západ :</th> <td id="VYTvzHodnota"></td></tr></table> <button id="BTpodrobnosti" class="VYTcollapse">Zobraz podrobnosti</button> <div id="podrobnosti" class="collapsible"> <table> <tr> <th>Převýšení :</th> <td id="VYTprevyseni"></td></tr><tr> <th>H :</th> <td id="VYThPresnost"></td></tr><tr> <th>V :</th> <td id="VYTvPresnost"></td></tr></table> </div><hr/> <button id="BTulozBod" class="schovany">Ulož bod</button> <button id="BTvytyceni">Vyber bod k vytyčení</button> <div class="modal" id="modalBody"> <button class="close" id="BTzavriBody"> <img src="img/close.svg" alt=""/> </button> <p class="modalInfo">Vyber bod pro vytyčení:</p><div class="Seznam" id="modalBodySeznam"></div></div></div>'

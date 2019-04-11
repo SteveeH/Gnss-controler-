@@ -60,6 +60,7 @@ function zacniMerit() {
     } else {
       console.log("Měřím")
       BTmereni.innerText = "ULOŽ"
+      BTmereni.style.backgroundColor = "red"
 
       MERENI = [] // prazdny objekt pro ulozeni merenych dat
       var delkaMereni = 0

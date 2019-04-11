@@ -29,6 +29,7 @@
         "cordova-plugin-statusbar": "^2.4.2",
         "cordova-plugin-vibration": "^3.1.0",
         "cordova-plugin-whitelist": "^1.3.3",
+        "cz.blocshop.socketsforcordova": "^1.1.0",
         "ionic-plugin-keyboard": "git+https://github.com/driftyco/ionic-plugins-keyboard.git",
         "nmea": "^0.1.0"
     },
@@ -50,7 +51,8 @@
             "cordova-plugin-file": {},
             "com.ourcodeworld.plugins.Filebrowser": {},
             "cordova-plugin-geolocation": {},
-            "cordova-plugin-device-orientation": {}
+            "cordova-plugin-device-orientation": {},
+            "cz.blocshop.socketsforcordova": {}
         },
         "platforms": [
             "android",

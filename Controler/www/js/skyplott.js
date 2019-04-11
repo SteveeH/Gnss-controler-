@@ -36,11 +36,6 @@ function vykresliSatelity(objekt, maxPolomer, sirka, vyska, typ) {
   DATA.GSA.GP.forEach(sat => aktivniSatelity.push(sat))
   DATA.GSA.GL.forEach(sat => aktivniSatelity.push(sat))
 
-  /* aktivniSatelity.concat(DATA.GSA.GP)
-  aktivniSatelity.concat(DATA.GSA.GL) */
-
-  /*  console.log("AKTIV: " + aktivniSatelity); */
-
   objekt.forEach(el => {
     // kazdy el (element) ma tyto parametry :
     // id : identifikacni cislo satelitu
@@ -84,43 +79,6 @@ function vykresliSatelity(objekt, maxPolomer, sirka, vyska, typ) {
     ctx.fillText(el.id, pozSatX, pozSatY + 2)
   })
 }
-
-/* function vykresliSatelity(
-  objekt,
-  maxPolomer,
-  sirka,
-  vyska,
-  barvaVypln,
-  barvaText
-) {
-  objekt.forEach(el => {
-    // kazdy el (element) ma tyto parametry :
-    // id : identifikacni cislo satelitu
-    // elevationDeg: elevace druzice
-    // azimuthTrue: azimut druzice
-    // SNRdB: kvalita signalu druzice (Signal Noice Ratio)
-
-    // vzdalenost druzice od stredu skyplotu - uvazujeme linearni vztah
-    var R = maxPolomer * (1 - el.elevationDeg / 90);
-    var pozSatX = sirka / 2 + R * Math.cos(toRad(el.azimuthTrue - 90));
-    var pozSatY = vyska / 2 + R * Math.sin(toRad(el.azimuthTrue - 90));
-
-    ctx.beginPath();
-    ctx.strokeStyle = "black";
-    ctx.fillStyle = barvaVypln;
-    ctx.lineWidth = 1.2;
-    //ctx.fillStyle = barva;
-    ctx.arc(pozSatX, pozSatY, maxPolomer / 15, 0, 2 * Math.PI);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.font = "12px Arial";
-    ctx.fillStyle = barvaText;
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(el.id, pozSatX, pozSatY + 2);
-  });
-} */
 
 function vykresliSkyplot(maxPolomer, sirka, vyska) {
   ctx.clearRect(0, 0, canvas.width, canvas.height)

@@ -45,11 +45,18 @@ Databaze.prototype.vytvorTabulky = function() {
     tx.executeSql(
       "INSERT INTO zakazky (id,nazev,datum) SELECT 1,'Testovaci zakazka',datetime('now','localtime') WHERE NOT EXISTS (SELECT * FROM zakazky)",
       [],
-      function(sqlTransaction, sqlResultSet) {
-        console.log("Zadne zakazky nenalezeny -> vytvorena testovaci zakazka.")
+      function(tx, rs) {
+        if (rs.rowsAffected) {
+          // 1 - kdyz bylo nutne zakazku vytvorit / 0 - kdyz ne
+          console.log(
+            "Zadne zakazky nenalezeny -> vytvorena testovaci zakazka."
+          )
+        } else {
+          console.log("Zakazky jsou v pořádku načteny.. ")
+        }
       },
-      function(sqlTransaction, sqlError) {
-        console.log("Vytvoreni testovaci zakazky err : " + sqlError.message)
+      function(tx, e) {
+        console.log("Vytvoreni testovaci zakazky err : " + e.message)
       }
     )
     /* tx.executeSql(
@@ -92,6 +99,21 @@ Databaze.prototype.zobrazTabulky = function() {
       function(tx, rs) {
         console.log(tx)
         console.log(rs)
+      },
+      function(tx, e) {
+        console.log("Error: " + e.message)
+      }
+    )
+  })
+}
+
+Databaze.prototype.vytycBod = function(idBodu, funkce) {
+  this.mydb.transaction(function(tx) {
+    tx.executeSql(
+      "SELECT * from body WHERE id = ?",
+      [idBodu],
+      function(tx, rs) {
+        funkce(rs.rows[0])
       },
       function(tx, e) {
         console.log("Error: " + e.message)
