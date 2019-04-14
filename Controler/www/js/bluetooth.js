@@ -57,8 +57,8 @@ function BLEzobrazNEsparovanaZarizeni() {
           html += "</option>"
         }
         SELble.innerHTML = html
-        BTbleHledej.className = ""
       }
+      BTbleHledej.className = ""
       udelejToast("Počet nalezených zařízení: " + pocet, 500)
     },
     function(er) {

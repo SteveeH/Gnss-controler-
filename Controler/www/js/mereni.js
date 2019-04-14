@@ -10,6 +10,9 @@ function eventyMereni() {
   let MERzemDelka = document.getElementById("MERzemDelka")
   let MERvyska = document.getElementById("MERvyska")
   let MERpdop = document.getElementById("MERpdop")
+  let MERlatP = document.getElementById("MERlatP")
+  let MERlonP = document.getElementById("MERlonP")
+  let MERaltP = document.getElementById("MERaltP")
 
   // Nastaveni hodnot podle predchozich
   MERvyskaAnteny.value = uloziste.getItem("vyskaAnteny")
@@ -36,6 +39,7 @@ function eventyMereni() {
 
   MERvyskaAnteny.addEventListener("change", () => {
     uloziste.setItem("vyskaAnteny", MERvyskaAnteny.value)
+    vyskaAnteny = parseFloat(MERvyskaAnteny.value)
   })
 }
 
@@ -139,8 +143,11 @@ function ulozZmerenyBod(data, nazevBodu, vyskaAnteny) {
 function zobrazInfoMereni() {
   if (gnnsPripojeno && window.location.hash === "#mereni") {
     MERzemSirka.innerText = DATA.GGA.LAT + "°"
+    MERlatP.innerText = "(" + DATA.GST.DEVlat + " m)"
     MERzemDelka.innerText = DATA.GGA.LON + "°"
+    MERlonP.innerText = "(" + DATA.GST.DEVlon + " m)"
     MERvyska.innerText = DATA.GGA.ALT + " m"
+    MERaltP.innerText = "(" + DATA.GST.DEValt + " m)"
     MERpdop.innerText = DATA.GSA.PDOP
   } else {
     clearInterval(intInfoMereni)

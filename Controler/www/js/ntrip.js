@@ -6,7 +6,6 @@
 // funkce pro ulozeni sourceTable
 
 function zdrojovaTabulka(adresa, port) {
-  let client = new Socket()
   let ODPOVED = ""
 
   client.open(adresa, port, function() {
@@ -33,7 +32,6 @@ function zdrojovaTabulka(adresa, port) {
   })
 
   client.onData = function(data) {
-    console.log(data.length)
     let str = ""
 
     data.forEach(el => {
@@ -41,38 +39,37 @@ function zdrojovaTabulka(adresa, port) {
     })
 
     ODPOVED += str
-    // invoked after new batch of data is received (typed array of bytes Uint8Array)
-    /* Object.keys(data).forEach(function(key) {
-      console.log(data[key])
-      console.log(String.fromCharCode(data[key]))
-    }) */
   }
 
   client.onError = function(errorMessage) {
-    // invoked after error occurs during connection
+    // zavola se pokud probehne najaka chyba v prubehu komunikace
     console.log(errorMessage)
   }
   client.onClose = function(hasError) {
-    // invoked after connection close
+    // zavola se po ukonceni spojeni
 
-    console.log(ODPOVED.split("\n")) // tady se to posle k ulozeni do tabulky
-    console.log("Byl error? :" + hasError)
+    vysledkyTabulky(ODPOVED.split("\n"))
+
+    //console.log("Byl error? :" + hasError)
   }
 }
 
-function NTRIPClient(adresa, port) {
-  // adresa , port , mountpoint , user , password
-  let client = new Socket()
-
+function NTRIPClient(adresa, port, mountpoint, uzivatel, heslo) {
+  // podminka : pokud je potreba poslat aktualni pozici -- lastGGA
   client.open(adresa, port, function() {
     var dataString =
-      "GET / CPRG3 HTTP/1.0\r\n" +
-      "Host: czeposr.cuzk.cz\r\n" +
+      "GET / " +
+      mountpoint +
+      " HTTP/1.0\r\n" +
+      "Host: " +
+      adresa +
+      "\r\n" +
       "User-Agent: NTRIPClient for Arduino v1.0\r\n" +
       "Authorization: Basic " +
-      "Y3Z1dHZ5dWthOmsxNTVkcmVtZWpha29rb25l" +
+      utf8_to_b64(uzivatel + ":" + heslo) +
       "\r\n\r\n"
 
+    console.log(dataString)
     var data = new Uint8Array(dataString.length)
     for (var i = 0; i < data.length; i++) {
       data[i] = dataString.charCodeAt(i)
@@ -90,15 +87,14 @@ function NTRIPClient(adresa, port) {
   })
 
   client.onData = function(data) {
-    console.log(data.length)
+    //console.log(data.length)
     let str = ""
 
     data.forEach(el => {
       str += String.fromCharCode(el)
     })
-
     // poslani korekcnich dat pres BLE
-    console.log(str)
+    bluetoothSerial.write(data)
   }
 
   client.onError = function(errorMessage) {
@@ -121,4 +117,32 @@ function stringFromArray(data) {
     str += String.fromCharCode(data[index])
 
   return str
+}
+
+function vysledkyTabulky(tabulka) {
+  let delka = tabulka.length
+  let str = ""
+  ZDtabulka = []
+
+  for (let i = 0; i < delka; i++) {
+    if (tabulka[i].slice(0, 3) === "STR") {
+      let mntp = tabulka[i].split(";")
+      //
+      str += '<option value="' + i + '">' + mntp[1] + "</option>"
+      // ulozeni do globalni promene
+      ZDtabulka.push(mntp)
+    }
+  }
+
+  // vyplneni select MountPointu
+  document.getElementById("mount_seznam").innerHTML = str
+}
+
+// kodovani base64
+function utf8_to_b64(str) {
+  return window.btoa(unescape(encodeURIComponent(str)))
+}
+
+function b64_to_utf8(str) {
+  return decodeURIComponent(escape(window.atob(str)))
 }

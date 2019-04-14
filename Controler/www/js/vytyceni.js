@@ -1,3 +1,9 @@
+// TODO :
+// - ulozeni vytyceneho bodu plus dodatecnych informace
+// - zobrazeni grafu vzdal > 3 m :
+//    - popisky grafu
+// - zobrazeni grafu vzdal < 3 m :
+
 function eventyVytyceni() {
   let BTpodrobnosti = document.getElementById("BTpodrobnosti")
   let BTvytyceni = document.getElementById("BTvytyceni")
@@ -27,10 +33,7 @@ function eventyVytyceni() {
   VYTcanvas.setAttribute("width", sirka)
   VYTcanvas.setAttribute("height", vyska)
 
-  /* sipka(ctx, sirka, vyska, 90) */
-  /* intVytyceni = setInterval(() => {
-    zobrazAzimuth()
-  }, 1000) */
+  pp(ctx, sirka, vyska)
 
   BTvytyceni.addEventListener("click", () => {
     document.getElementById("modalBody").style.display = "block"
@@ -41,7 +44,6 @@ function eventyVytyceni() {
 
   BTzavriBody.addEventListener("click", () => {
     document.getElementById("modalBody").style.display = "none"
-    /* dron() */
   })
 
   BTulozBod.addEventListener("click", () => {
@@ -51,62 +53,54 @@ function eventyVytyceni() {
       document.getElementById("BTulozBod").style.display = "none"
       document.getElementById("VYTcisloBodu").innerText = "Vytyčení bodu: "
 
+      document.getElementById("VYTvzdalBod").innerText = ""
+      document.getElementById("VYTprevyseni").innerText = ""
+      document.getElementById("VYTvzHodnota").innerText = ""
+      document.getElementById("VYTsjHodnota").innerText = ""
+      document.getElementById("VYThPresnost").innerText = ""
+      document.getElementById("VYTvPresnost").innerText = ""
+      document.getElementById("VYTsj").innerText = "Jdi na sever :"
+      document.getElementById("VYTvz").innerText = "Jdi na západ :"
+
       // ukonceni vytycovani a ulozeni aktualni pozice a
       // presnosti vytyceni do databaze
       console.log("Bod byl uložen do databáze..")
       clearInterval(intVytyceni)
+      pp()
     } else {
       console.log("Pokračuji v měření..")
     }
   })
 }
 
-function sipka(ctx, sirka, vyska, uhel) {
+function pp() {
+  let VYTcanvas = document.getElementById("VYTcanvas")
+  let vyska = VYTcanvas.offsetHeight
+  let sirka = VYTcanvas.offsetWidth
+  let ctx = VYTcanvas.getContext("2d")
+
   ctx.clearRect(0, 0, sirka, vyska)
-  let maxPolomer = sirka < vyska ? sirka / 2 - 10 : vyska / 2 - 10
-  // ulozeni prechozi pozice a natoceni
+  let maxPolomer = sirka < vyska ? sirka / 2 - 20 : vyska / 2 - 20
+
   ctx.save()
-  // vykresleni cervene sipky
+  //
   ctx.translate(sirka / 2, vyska / 2)
-  ctx.rotate((-uhel * Math.PI) / 180) //
-  ctx.fillStyle = "red"
-  ctx.lineWidth = 2
-  ctx.beginPath()
-  ctx.moveTo(0, 0)
-  ctx.lineTo(15, 0)
-  ctx.lineTo(0, -maxPolomer)
-  ctx.lineTo(-15, 0)
-  ctx.moveTo(0, 0)
-  ctx.fill()
-  // vykresleni vnitrniho kolecka
-  ctx.beginPath()
-  ctx.strokeStyle = "black"
-  ctx.lineWidth = 1
-  ctx.arc(0, 0, maxPolomer, 0, 2 * Math.PI)
-  ctx.stroke()
   // vykresleni okraje
   ctx.beginPath()
   ctx.strokeStyle = "black"
-  ctx.fillStyle = "black"
   ctx.lineWidth = 2
-  ctx.arc(0, 0, 10, 0, 2 * Math.PI)
+  ctx.arc(0, 0, maxPolomer, 0, 2 * Math.PI)
+  ctx.stroke()
+  // vykresleni vnitrniho kolecka
+  ctx.beginPath()
+  ctx.strokeStyle = "black"
+  ctx.fillStyle = "black"
+  ctx.lineWidth = 1
+  ctx.arc(0, 0, 5, 0, 2 * Math.PI)
   ctx.fill()
   ctx.stroke()
 
   // obnoveni natoceni
-  ctx.restore()
-
-  // ulozeni prechozi pozice a natoceni
-  ctx.save()
-  // zobrazeni popisku
-  ctx.translate(sirka / 2, vyska / 2)
-  ctx.font = "20px Arial"
-  ctx.textAlign = "center"
-  ctx.textBaseline = "middle"
-  ctx.fillText("N", 0, -maxPolomer + 20)
-  ctx.fillText("S", 0, +maxPolomer - 20)
-  ctx.fillText("W", -maxPolomer + 20, 0)
-  ctx.fillText("E", +maxPolomer - 20, 0)
   ctx.restore()
 }
 
@@ -178,6 +172,7 @@ function vytycBod(tlac) {
 
   database.vytycBod(tlac.value, sour => {
     BodVytyc = sour
+    console.log(sour)
     document.getElementById("VYTcisloBodu").innerText =
       "Vytyčení bodu: " + BodVytyc.nazevBodu
     intVytyceni = setInterval(() => {
@@ -187,5 +182,173 @@ function vytycBod(tlac) {
 }
 
 function vytycuj() {
-  console.log("vytyčuji bod: " + BodVytyc.nazevBodu)
+  let poziceStav = { lat: DATA.GGA.LAT, lon: DATA.GGA.LON, alt: DATA.GGA.ALT }
+  let poziceVyt = { lat: BodVytyc.lat, lon: BodVytyc.lon, alt: BodVytyc.alt }
+
+  // vypocet
+  let azimut = geodesyAzimuth(poziceStav, poziceVyt)
+  let delka = geodesyDistance(poziceStav, poziceVyt)
+  // let vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
+  let prevyseni = zaokrouhli(poziceVyt.alt - poziceStav.alt + vyskaAnteny, 3)
+
+  let sj = delka * Math.cos((azimut * Math.PI) / 180)
+  let vz = delka * Math.sin((azimut * Math.PI) / 180)
+
+  console.log("sj: " + sj + "vz: " + vz)
+
+  // zobrazeni informaci
+  document.getElementById("VYTvzdalBod").innerText = delka + " m"
+  document.getElementById("VYTprevyseni").innerText = prevyseni + " m"
+  document.getElementById("VYTvzHodnota").innerText =
+    Math.abs(zaokrouhli(vz, 3)) + " m"
+  document.getElementById("VYTsjHodnota").innerText =
+    Math.abs(zaokrouhli(sj, 3)) + " m"
+  document.getElementById("VYThPresnost").innerText =
+    zaokrouhli(Math.sqrt(DATA.GST.DEVlat ** 2 + DATA.GST.DEVlon ** 2), 3) + " m"
+  document.getElementById("VYTvPresnost").innerText =
+    zaokrouhli(DATA.GST.DEValt, 3) + " m"
+
+  if (sj > 0) {
+    document.getElementById("VYTsj").innerText = "Jdi na sever :"
+  } else {
+    document.getElementById("VYTsj").innerText = "Jdi na jih :"
+  }
+
+  if (vz > 0) {
+    document.getElementById("VYTvz").innerText = "Jdi na východ :"
+  } else {
+    document.getElementById("VYTvz").innerText = "Jdi na západ :"
+  }
+
+  // VYKRESLENI GRAFU
+  delka < 3 ? graf1(sj, vz) : graf2(azimut)
+}
+
+function zaokrouhli(cislo, des) {
+  return Math.round(cislo * 10 ** des) / 10 ** des
+}
+
+function graf1(sj, vz) {
+  let VYTcanvas = document.getElementById("VYTcanvas")
+  let vyska = VYTcanvas.offsetHeight
+  let sirka = VYTcanvas.offsetWidth
+  let ctx = VYTcanvas.getContext("2d")
+
+  ctx.clearRect(0, 0, sirka, vyska)
+  let maxPolomer = sirka < vyska ? sirka / 2 - 20 : vyska / 2 - 20
+
+  ctx.save()
+  //
+  ctx.translate(sirka / 2, vyska / 2)
+  // vykresleni vnejsi okraj => odpovida 3 m
+  ctx.beginPath()
+  ctx.strokeStyle = "black"
+  ctx.lineWidth = 2
+  ctx.arc(0, 0, maxPolomer, 0, 2 * Math.PI)
+  ctx.stroke()
+  // vykresleni vnitrni okraj => odpovida 1,5 m
+  ctx.beginPath()
+  ctx.strokeStyle = "black"
+  ctx.lineWidth = 2
+  ctx.arc(0, 0, maxPolomer / 2, 0, 2 * Math.PI)
+  ctx.stroke()
+  // cary
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(maxPolomer, 0)
+  ctx.stroke()
+
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(0, maxPolomer)
+  ctx.stroke()
+
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(-maxPolomer, 0)
+  ctx.stroke()
+
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(0, -maxPolomer)
+  ctx.stroke()
+
+  // popisky
+  ctx.font = "12px Arial"
+  ctx.fillStyle = "black"
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  ctx.fillText("S", 0, maxPolomer + 10)
+  ctx.fillText("E", maxPolomer + 10, 0)
+  ctx.fillText("N", 0, -(maxPolomer + 10))
+  ctx.fillText("W", -(maxPolomer + 10), 0)
+
+  // vykresleni bodu
+  ctx.beginPath()
+  ctx.strokeStyle = "black"
+  ctx.fillStyle = "red"
+  ctx.lineWidth = 1
+  ctx.arc(vz * (maxPolomer / 3), -sj * (maxPolomer / 3), 5, 0, 2 * Math.PI)
+  ctx.stroke()
+  ctx.fill()
+
+  // obnoveni natoceni
+  ctx.restore()
+}
+
+function graf2(uhel) {
+  let VYTcanvas = document.getElementById("VYTcanvas")
+  let vyska = VYTcanvas.offsetHeight
+  let sirka = VYTcanvas.offsetWidth
+  let ctx = VYTcanvas.getContext("2d")
+
+  ctx.clearRect(0, 0, sirka, vyska)
+  let maxPolomer = sirka < vyska ? sirka / 2 - 20 : vyska / 2 - 20
+  // ulozeni prechozi pozice a natoceni
+  ctx.save()
+  // vykresleni cervene sipky
+  ctx.translate(sirka / 2, vyska / 2)
+  ctx.rotate((uhel * Math.PI) / 180) //
+  ctx.fillStyle = "red"
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(15, 0)
+  ctx.lineTo(0, -maxPolomer)
+  ctx.lineTo(-15, 0)
+  ctx.moveTo(0, 0)
+  ctx.fill()
+  // vykresleni okraje
+  ctx.beginPath()
+  ctx.strokeStyle = "black"
+  ctx.lineWidth = 1
+  ctx.arc(0, 0, maxPolomer, 0, 2 * Math.PI)
+  ctx.stroke()
+  // vykresleni vnitrniho kolecka
+  ctx.beginPath()
+  ctx.strokeStyle = "black"
+  ctx.fillStyle = "black"
+  ctx.lineWidth = 2
+  ctx.arc(0, 0, 10, 0, 2 * Math.PI)
+  ctx.fill()
+  ctx.stroke()
+
+  // obnoveni natoceni
+  ctx.restore()
+
+  // ulozeni prechozi pozice a natoceni
+  ctx.save()
+  // zobrazeni popisku
+  ctx.translate(sirka / 2, vyska / 2)
+  // popisky
+  ctx.font = "12px Arial"
+  ctx.fillStyle = "black"
+  ctx.textAlign = "center"
+  ctx.textBaseline = "middle"
+  ctx.fillText("S", 0, maxPolomer + 10)
+  ctx.fillText("E", maxPolomer + 10, 0)
+  ctx.fillText("N", 0, -(maxPolomer + 10))
+  ctx.fillText("W", -(maxPolomer + 10), 0)
+
+  ctx.restore()
 }

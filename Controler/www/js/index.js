@@ -25,15 +25,17 @@ var INFbaterka = document.getElementById("INFbaterka")
 var INFfix = document.getElementById("INFfix")
 var INFble = document.getElementById("INFble")
 
-var zprava =
-  "$GPGSV,4,1,13,01,03,011,23,06,06,113,43,10,12,288,13,12,51,245,21*7C"
+var lastGGA = ""
 var gnnsPripojeno = false
 
 var BLUETOOTH
-var database = new Databaze()
+var ZDtabulka = []
+var database = new Databaze() // WebSQL databaze
+var client
 var uloziste = window.localStorage
 var idZAKAZKY = 1 // zde se bude nacitat posledni nactena zakazka
 var MERENI = []
+var vyskaAnteny
 
 var DATA = {
   GGA: {
@@ -73,9 +75,14 @@ var app = {
     eventy()
     database.initDB()
     database.vytvorTabulky()
+    vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
+    client = new Socket() // TCP/NTRIP client
 
     // tohle pak vymazat
-    BLEpripojZarizeni("98:D3:32:31:1C:8D")
+    setTimeout(() => {
+      BLEpripojZarizeni("98:D3:32:31:1C:8D")
+    }, 1000)
+    //
 
     domov()
     aktivOkno("domov")
@@ -183,6 +190,10 @@ function prekladNMEA(veta, ulozeni) {
     DATA.GST.DEVlat = parseFloat(rozdel[6])
     DATA.GST.DEVlon = parseFloat(rozdel[7])
     DATA.GST.DEValt = parseFloat(rozdel[8].slice(0, -3))
+  } else if (veta.slice(3, 6) === "GGA") {
+    lastGGA = veta
+    var preklad = nmeaParse(veta)
+    ulozeni(preklad)
   } else {
     var preklad = nmeaParse(veta)
     ulozeni(preklad)
@@ -201,6 +212,26 @@ var ulozeniGnnsDat = function(objekt) {
     DATA.GGA.fixType = objekt.fixType
     DATA.GGA.differentialAge = objekt.differentialAge
     DATA.GGA.differentialRefStn = objekt.differentialRefStn
+
+    // Zmena barvy indikatoru kvality souradnic
+    switch (objekt.fixType) {
+      case "delta": // DGNSS
+        INFfix.style.fill = "blue"
+        break
+      case "rtk": // RTK - fix
+        INFfix.style.fill = "green"
+        break
+      case "frtk": // RTK - float
+        INFfix.style.fill = "orange"
+        break
+      case "estimated": // RTK - auto
+        INFfix.style.fill = "red"
+        break
+      default:
+        // kodove mereni
+        INFfix.style.fill = "black"
+        break
+    }
   } else if (typVety === "GSA") {
     if (objekt.satellites[0] < 33) {
       // GP satelity
@@ -510,7 +541,7 @@ function aktivOkno(okno) {
 }
 
 var HTMLnastaveni =
-  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""> <img src="img/refresh.svg"/> </button> <select id="ble_seznam"> </select> <button id="ble_pripoj"> PŘIPOJ BLE </button> </div></div><hr/> <div class="nast"> <p>Nastavení hotspot připojení</p><input type="text" placeholder="Název přístupového bodu"/> <input type="text" placeholder="Heslo"/> </div><hr/> <div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..."/> <input type="text" placeholder="port..."/> <br/> <button>MoutnPointy</button> <br/> <select id="mount_seznam"> <option value="mount1">M1</option> <option value="mount2">M2</option> <option value="mount3">M3</option> </select> <br/> <input type="text" placeholder="Uživatelské jméno"/> <input type="password" placeholder="Heslo"/> <button>Připoj</button> </div><hr/> <div class="nast"> <p>Nastavení zvuku</p></div>'
+  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""><img src="img/refresh.svg"/></button> <select id="ble_seznam"> </select> <button id="ble_pripoj">PŘIPOJ BLE</button> </div></div><hr/><div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..." id="NTRIPip"/> <input type="text" placeholder="port..." id="NTRIPport"/> <br/> <button id="NTRIPmntp">MoutnPointy</button> <br/> <select id="mount_seznam"> </select> <br/> <input type="text" placeholder="Uživatelské jméno" id="NTRIPuziv"/> <input type="password" placeholder="Heslo" id="NTRIPheslo"/> <button id="NTRIPpripoj">Připoj</button></div><hr/><div class="nast"><p>Nastavení zvuku</p></div>'
 
 var HTMLdomov =
   '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Vytvoř zakázku</option> </select> </div><button id="BTzobrazUlozeneBody">Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTimportBodu">Importuj body</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <img src="img/close.svg" alt=""/> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div><div class="modal" id="modalBody"> <button class="close" id="BTzavriBody"> <img src="img/close.svg" alt=""/> </button> <p class="modalInfo">Uložené body:</p><div class="Seznam" id="modalBodySeznam"></div></div></div>'
@@ -519,7 +550,7 @@ var HTMLdomovOld =
   '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Vytvoř zakázku</option> </select> </div><button id="BTzobrazUlozeneBody">Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTimportBodu">Importuj body</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 51.976 51.976" style="enable-background:new 0 0 51.976 51.976;" xml:space="preserve" > <g> <path d="M44.373,7.603c-10.137-10.137-26.632-10.138-36.77,0c-10.138,10.138-10.137,26.632,0,36.77s26.632,10.138,36.77,0C54.51,34.235,54.51,17.74,44.373,7.603z M36.241,36.241c-0.781,0.781-2.047,0.781-2.828,0l-7.425-7.425l-7.778,7.778c-0.781,0.781-2.047,0.781-2.828,0c-0.781-0.781-0.781-2.047,0-2.828l7.778-7.778l-7.425-7.425c-0.781-0.781-0.781-2.048,0-2.828c0.781-0.781,2.047-0.781,2.828,0l7.425,7.425l7.071-7.071c0.781-0.781,2.047-0.781,2.828,0c0.781,0.781,0.781,2.047,0,2.828l-7.071,7.071l7.425,7.425C37.022,34.194,37.022,35.46,36.241,36.241z"/> </g> </svg> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div></div>'
 
 var HTMLmereni =
-  '<div class="mereni"> <label for="nazevBodu">Název bodu :</label> <input type="text" id="MERnazevBodu"/> <label for="vyskaAnteny">Výška antény [m] :</label> <input type="number" id="MERvyskaAnteny"/> <p class="zobrazCas" id="MERzobrazCas">0:01:50</p><input type="range" min="10" max="300" step="5" value="10" class="Slider" id="SliderDobaMereni"/> <button id="BTmereni">MĚŘ</button> <hr/> <table> <tr> <th>Doba měření :</th> <td id="MERcas">0:00:00</td></tr><tr> <th>Zem. šířka :</th> <td id="MERzemSirka"></td></tr><tr> <th>Zem. délka :</th> <td id="MERzemDelka"></td></tr><tr> <th>Výška :</th> <td id="MERvyska"></td></tr><tr> <th>PDOP :</th> <td id="MERpdop"></td></tr></table> </div></div>'
+  '<div class="mereni"> <label for="nazevBodu">Název bodu :</label> <input type="text" id="MERnazevBodu"/> <label for="vyskaAnteny">Výška antény [m] :</label> <input type="number" id="MERvyskaAnteny"/> <p class="zobrazCas" id="MERzobrazCas">0:01:50</p><input type="range" min="10" max="300" step="5" value="10" class="Slider" id="SliderDobaMereni"/> <button id="BTmereni">MĚŘ</button> <hr/> <table> <tr> <th>Doba měření :</th> <td id="MERcas">0:00:00</td></tr><tr> <th>Zem. šířka :</th> <td id="MERzemSirka"></td><td id="MERlatP"></td></tr><tr> <th>Zem. délka :</th> <td id="MERzemDelka"></td><td id="MERlonP"></td></tr><tr> <th>Výška :</th> <td id="MERvyska"></td><td id="MERaltP"></td></tr><tr> <th>PDOP :</th> <td id="MERpdop"></td></tr></table> </div></div>'
 
 var HTMLvytyceni =
   '<div class="vytyceni"> <p><b id="VYTcisloBodu">Vytyčení bodu:</b></p><canvas id="VYTcanvas"></canvas> <hr/> <table> <tr> <th>Vzdálenost k bodu :</th> <td id="VYTvzdalBod"></td></tr><tr> <th id="VYTsj">Jdi na sever :</th> <td id="VYTsjHodnota"></td></tr><tr> <th id="VYTvz">Jdi na západ :</th> <td id="VYTvzHodnota"></td></tr></table> <button id="BTpodrobnosti" class="VYTcollapse">Zobraz podrobnosti</button> <div id="podrobnosti" class="collapsible"> <table> <tr> <th>Převýšení :</th> <td id="VYTprevyseni"></td></tr><tr> <th>H :</th> <td id="VYThPresnost"></td></tr><tr> <th>V :</th> <td id="VYTvPresnost"></td></tr></table> </div><hr/> <button id="BTulozBod" class="schovany">Ulož bod</button> <button id="BTvytyceni">Vyber bod k vytyčení</button> <div class="modal" id="modalBody"> <button class="close" id="BTzavriBody"> <img src="img/close.svg" alt=""/> </button> <p class="modalInfo">Vyber bod pro vytyčení:</p><div class="Seznam" id="modalBodySeznam"></div></div></div>'
