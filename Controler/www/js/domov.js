@@ -107,6 +107,7 @@ function eventyDomov() {
   Select.addEventListener("change", () => {
     console.log("Zvolena zakázka: " + Select.value)
     idZAKAZKY = Select.value
+    window.localStorage.setItem("zakazka", idZAKAZKY.toString())
     database.infoZakazka(Select.value)
   })
 

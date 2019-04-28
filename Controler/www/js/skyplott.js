@@ -1,9 +1,16 @@
+// TODO:
+// - legenda k grafu
+// - tabulka s podrobnymi info
+//   - zobrazeni zda je satelit pouzity k urceni polohy (GSA)
+//   * graficke zobrazeni
+
 function SKY() {
   if (location.hash === "#skyplot") {
     vykresliSkyplot(maxPolomer, sirka, vyska)
     vykresliPopisky(maxPolomer, sirka, vyska)
     vykresliSatelity(DRUZICE.GL, maxPolomer, sirka, vyska, 0)
     vykresliSatelity(DRUZICE.GP, maxPolomer, sirka, vyska, 1)
+    vyplnTabulku()
   } else {
     clearInterval(sky)
   }
@@ -12,6 +19,9 @@ function SKY() {
 function vytvorSkyplot() {
   var plocha = document.getElementById("plocha")
   var canvas = document.createElement("canvas")
+  var tabulka = document.createElement("table")
+  var hr = document.createElement("hr")
+
   var sirka = plocha.offsetWidth
   var vyska = plocha.offsetHeight
 
@@ -19,7 +29,12 @@ function vytvorSkyplot() {
   canvas.setAttribute("class", "skyplot")
   canvas.setAttribute("width", sirka)
   canvas.setAttribute("height", vyska)
+  tabulka.setAttribute("id", "skyTable")
+  tabulka.setAttribute("class", "tableSat")
+  tabulka.setAttribute("align", "center")
   plocha.appendChild(canvas)
+  plocha.appendChild(hr)
+  plocha.appendChild(tabulka)
 
   // urceni maximalni polomeru Skyplotu
   var maxPolomer = sirka < vyska ? sirka / 2 - 15 : vyska / 2 - 15
@@ -125,6 +140,38 @@ function vykresliPopisky(maxPolomer, sirka, vyska) {
     ctx.textBaseline = "middle"
     ctx.fillText(azim[j], xx, yy)
   }
+}
+
+function vyplnTabulku() {
+  let str = ""
+  str +=
+    "<tr><th>Typ</th><th>ID</th><th>Elev. [°]</th><th>Azimut [°]</th><th>SNR [dB]</th></tr>"
+
+  for (let i = 0; i < DRUZICE.GP.length; i++) {
+    str += "<tr><td>GP</td><td>"
+    str += DRUZICE.GP[i]["id"]
+    str += "</td><td>"
+    str += DRUZICE.GP[i]["elevationDeg"]
+    str += "</td><td>"
+    str += DRUZICE.GP[i]["azimuthTrue"]
+    str += "</td><td>"
+    str += DRUZICE.GP[i]["SNRdB"]
+    str += "</td></tr>"
+  }
+
+  for (let j = 0; j < DRUZICE.GL.length; j++) {
+    str += "<tr><td>GL</td><td>"
+    str += DRUZICE.GL[j]["id"]
+    str += "</td><td>"
+    str += DRUZICE.GL[j]["elevationDeg"]
+    str += "</td><td>"
+    str += DRUZICE.GL[j]["azimuthTrue"]
+    str += "</td><td>"
+    str += DRUZICE.GL[j]["SNRdB"]
+    str += "</td></tr>"
+  }
+
+  document.getElementById("skyTable").innerHTML = str
 }
 
 function toRad(uhel) {

@@ -25,6 +25,7 @@
         "cordova-plugin-geolocation": "^4.0.1",
         "cordova-plugin-local-notification": "git+https://github.com/katzer/cordova-plugin-local-notifications.git",
         "cordova-plugin-media": "^5.0.2",
+        "cordova-plugin-network-information": "^2.0.1",
         "cordova-plugin-simple-toast": "^1.0.0",
         "cordova-plugin-statusbar": "^2.4.2",
         "cordova-plugin-vibration": "^3.1.0",
@@ -52,7 +53,8 @@
             "com.ourcodeworld.plugins.Filebrowser": {},
             "cordova-plugin-geolocation": {},
             "cordova-plugin-device-orientation": {},
-            "cz.blocshop.socketsforcordova": {}
+            "cz.blocshop.socketsforcordova": {},
+            "cordova-plugin-network-information": {}
         },
         "platforms": [
             "android",

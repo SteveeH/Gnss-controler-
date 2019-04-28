@@ -1,111 +1,118 @@
 // TODO:
-// klienta hodit jako glob. promeny
-// moznost ukonceni streamu
-// pridelat promene
-// odesilani pres BLE
-// funkce pro ulozeni sourceTable
+// kontrola propojeni k internetu
 
 function zdrojovaTabulka(adresa, port) {
   let ODPOVED = ""
+  if (navigator.connection.type === "none") {
+    udelejToast("Připojení k internetu není k dispozici.", 500)
+  } else {
+    client.open(adresa, port, function() {
+      var dataString =
+        "GET / HTTP/1.0\r\n" +
+        "Host: " +
+        adresa +
+        "\r\n" +
+        "User-Agent: NTRIPClient for Arduino v1.0\r\n" +
+        "Connection: close\r\n\r\n"
 
-  client.open(adresa, port, function() {
-    var dataString =
-      "GET / HTTP/1.0\r\n" +
-      "Host: 195.245.209.181\r\n" +
-      "User-Agent: NTRIPClient for Arduino v1.0\r\n" +
-      "Connection: close\r\n\r\n"
-
-    var data = new Uint8Array(dataString.length)
-    for (var i = 0; i < data.length; i++) {
-      data[i] = dataString.charCodeAt(i)
-    }
-
-    client.write(
-      data,
-      () => {
-        console.log("poslano..")
-      },
-      message => {
-        console.log("Err: " + JSON.stringify(message))
+      var data = new Uint8Array(dataString.length)
+      for (var i = 0; i < data.length; i++) {
+        data[i] = dataString.charCodeAt(i)
       }
-    )
-  })
 
-  client.onData = function(data) {
-    let str = ""
-
-    data.forEach(el => {
-      str += String.fromCharCode(el)
+      client.write(
+        data,
+        () => {
+          console.log("poslano..")
+        },
+        message => {
+          console.log("Err: " + JSON.stringify(message))
+        }
+      )
     })
 
-    ODPOVED += str
-  }
+    client.onData = function(data) {
+      let str = ""
 
-  client.onError = function(errorMessage) {
-    // zavola se pokud probehne najaka chyba v prubehu komunikace
-    console.log(errorMessage)
-  }
-  client.onClose = function(hasError) {
-    // zavola se po ukonceni spojeni
+      data.forEach(el => {
+        str += String.fromCharCode(el)
+      })
 
-    vysledkyTabulky(ODPOVED.split("\n"))
+      ODPOVED += str
+    }
 
-    //console.log("Byl error? :" + hasError)
+    client.onError = function(errorMessage) {
+      // zavola se pokud probehne najaka chyba v prubehu komunikace
+      console.log(errorMessage)
+    }
+    client.onClose = function(hasError) {
+      // zavola se po ukonceni spojeni
+      vysledkyTabulky(ODPOVED.split("\n"))
+    }
   }
 }
 
-function NTRIPClient(adresa, port, mountpoint, uzivatel, heslo) {
-  // podminka : pokud je potreba poslat aktualni pozici -- lastGGA
-  client.open(adresa, port, function() {
-    var dataString =
-      "GET / " +
-      mountpoint +
-      " HTTP/1.0\r\n" +
-      "Host: " +
-      adresa +
-      "\r\n" +
-      "User-Agent: NTRIPClient for Arduino v1.0\r\n" +
-      "Authorization: Basic " +
-      utf8_to_b64(uzivatel + ":" + heslo) +
-      "\r\n\r\n"
+function NTRIPClient(adresa, port, mountpoint, virtual, uzivatel, heslo) {
+  if (navigator.connection.type === "none") {
+    udelejToast("Připojení k internetu není k dispozici.", 500)
+  } else {
+    client.open(adresa, port, function() {
+      var dataString =
+        "GET / " +
+        mountpoint +
+        " HTTP/1.0\r\n" +
+        "Host: " +
+        adresa +
+        "\r\n" +
+        "User-Agent: NTRIPClient for Arduino v1.0\r\n" +
+        "Authorization: Basic " +
+        utf8_to_b64(uzivatel + ":" + heslo) +
+        "\r\n\r\n"
+      // podminka : pokud je potreba poslat aktualni pozici --> lastGGA
+      if (virtual) {
+        dataString += lastGGA
+        dataString += "\r\n"
+      }
+      var data = new Uint8Array(dataString.length)
+      for (var i = 0; i < data.length; i++) {
+        data[i] = dataString.charCodeAt(i)
+      }
 
-    console.log(dataString)
-    var data = new Uint8Array(dataString.length)
-    for (var i = 0; i < data.length; i++) {
-      data[i] = dataString.charCodeAt(i)
+      client.write(
+        data,
+        () => {
+          console.log("poslano..")
+        },
+        message => {
+          console.log("Err: " + JSON.stringify(message))
+        }
+      )
+    })
+
+    client.onData = function(data) {
+      //console.log(data.length)
+      let str = ""
+
+      data.forEach(el => {
+        str += String.fromCharCode(el)
+      })
+      // poslani korekcnich dat pres BLE
+      bluetoothSerial.write(data)
+      //console.log(str)
+      NTRIPcon.pripojeno = true
     }
 
-    client.write(
-      data,
-      () => {
-        console.log("poslano..")
-      },
-      message => {
-        console.log("Err: " + JSON.stringify(message))
-      }
-    )
-  })
+    client.onError = function(errorMessage) {
+      // Vypis chybove hlasky
+      console.log(errorMessage)
+      NTRIPcon.pripojeno = false
+    }
+    client.onClose = function(hasError) {
+      // Vypis po ukonceni komunikace
 
-  client.onData = function(data) {
-    //console.log(data.length)
-    let str = ""
-
-    data.forEach(el => {
-      str += String.fromCharCode(el)
-    })
-    // poslani korekcnich dat pres BLE
-    bluetoothSerial.write(data)
-  }
-
-  client.onError = function(errorMessage) {
-    // invoked after error occurs during connection
-    console.log(errorMessage)
-  }
-  client.onClose = function(hasError) {
-    // invoked after connection close
-
-    //console.log(ODPOVED.split("\n")) // tady se to posle k ulozeni do tabulky
-    console.log("Byl error? :" + hasError)
+      console.log("Byl error? :" + hasError)
+      NTRIPcon.pripojeno = false
+    }
   }
 }
 
@@ -122,15 +129,19 @@ function stringFromArray(data) {
 function vysledkyTabulky(tabulka) {
   let delka = tabulka.length
   let str = ""
-  ZDtabulka = []
+  NTRIPcon.ZDtabulka = []
+  let k = 0
 
   for (let i = 0; i < delka; i++) {
     if (tabulka[i].slice(0, 3) === "STR") {
+      if (k == 0) {
+        k = i
+      }
       let mntp = tabulka[i].split(";")
       //
-      str += '<option value="' + i + '">' + mntp[1] + "</option>"
+      str += '<option value="' + (i - k) + '">' + mntp[1] + "</option>"
       // ulozeni do globalni promene
-      ZDtabulka.push(mntp)
+      NTRIPcon.ZDtabulka.push(mntp)
     }
   }
 

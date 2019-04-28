@@ -132,11 +132,12 @@ function ulozZmerenyBod(data, nazevBodu, vyskaAnteny) {
   database.ulozBod(
     idZAKAZKY,
     nazevBodu,
-    lat / ctr,
-    lon / ctr,
-    alt / ctr,
-    sep / ctr,
-    vyskaAnteny
+    zaokrouhli(lat / ctr, 10),
+    zaokrouhli(lon / ctr, 10),
+    zaokrouhli(alt / ctr, 3),
+    zaokrouhli(sep / ctr, 3),
+    vyskaAnteny,
+    "mer"
   )
 }
 

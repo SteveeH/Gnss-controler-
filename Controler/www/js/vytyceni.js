@@ -49,6 +49,7 @@ function eventyVytyceni() {
   BTulozBod.addEventListener("click", () => {
     // Potvrzeni zda chci opravdu bod ulozit (zobrazeni rozdilu souř.) nebo
     // budu pokracovat v mereni
+
     if (confirm("Ulozit vytycený bod??\n" + "dx: 1.532 m\n" + "dy: 1.059 m")) {
       document.getElementById("BTulozBod").style.display = "none"
       document.getElementById("VYTcisloBodu").innerText = "Vytyčení bodu: "
@@ -64,6 +65,16 @@ function eventyVytyceni() {
 
       // ukonceni vytycovani a ulozeni aktualni pozice a
       // presnosti vytyceni do databaze
+      database.ulozBod(
+        idZAKAZKY,
+        BodVytyc.nazevBodu + "vyt",
+        DATA.GGA.LAT,
+        DATA.GGA.LON,
+        DATA.GGA.ALT,
+        DATA.GGA.SEP,
+        vyskaAnteny,
+        "vyt"
+      )
       console.log("Bod byl uložen do databáze..")
       clearInterval(intVytyceni)
       pp()
@@ -172,7 +183,6 @@ function vytycBod(tlac) {
 
   database.vytycBod(tlac.value, sour => {
     BodVytyc = sour
-    console.log(sour)
     document.getElementById("VYTcisloBodu").innerText =
       "Vytyčení bodu: " + BodVytyc.nazevBodu
     intVytyceni = setInterval(() => {
@@ -182,6 +192,11 @@ function vytycBod(tlac) {
 }
 
 function vytycuj() {
+  if (window.location.hash != "#vytyceni") {
+    clearInterval(intVytyceni)
+    console.log("ukončeni vytyčování")
+  }
+
   let poziceStav = { lat: DATA.GGA.LAT, lon: DATA.GGA.LON, alt: DATA.GGA.ALT }
   let poziceVyt = { lat: BodVytyc.lat, lon: BodVytyc.lon, alt: BodVytyc.alt }
 
@@ -193,8 +208,6 @@ function vytycuj() {
 
   let sj = delka * Math.cos((azimut * Math.PI) / 180)
   let vz = delka * Math.sin((azimut * Math.PI) / 180)
-
-  console.log("sj: " + sj + "vz: " + vz)
 
   // zobrazeni informaci
   document.getElementById("VYTvzdalBod").innerText = delka + " m"

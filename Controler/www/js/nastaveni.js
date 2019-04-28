@@ -1,3 +1,6 @@
+// TODO: - zobrazeni podrobnych informaci o MNTP
+//       - nastaveni konfigurace prijimace
+
 function eventyNastaveni() {
   let BTbleHledej = document.getElementById("ble_hledej")
   let BTblePripoj = document.getElementById("ble_pripoj")
@@ -19,6 +22,11 @@ function eventyNastaveni() {
   NTRIPuziv.value = uloziste.getItem("NTRIPuziv")
   NTRIPheslo.value = uloziste.getItem("NTRIPheslo")
 
+  // Pokud je client pripojen nastavi se tlacitko na odpojeni
+  NTRIPcon.pripojeno
+    ? (NTRIPpripoj.innerText = "Odpoj")
+    : (NTRIPpripoj.innerText = "Připoj")
+
   NTRIPip.addEventListener("change", () => {
     uloziste.setItem("NTRIPip", NTRIPip.value)
   })
@@ -35,12 +43,14 @@ function eventyNastaveni() {
   })
 
   NTRIPpripoj.addEventListener("click", () => {
+    navigator.vibrate(25)
     // kontrola vstupu
     if (NTRIPpripoj.innerText === "Připoj") {
       NTRIPClient(
         NTRIPip.value,
         NTRIPport.value,
-        MNTPseznam.options[MNTPseznam.selectedIndex].text, // vzit ze ZDtabulka
+        NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][1],
+        NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][11],
         NTRIPuziv.value,
         NTRIPheslo.value
       )
@@ -53,16 +63,19 @@ function eventyNastaveni() {
   })
 
   NTRIPmntp.addEventListener("click", () => {
+    navigator.vibrate(25)
     // kontrola vstupu
     zdrojovaTabulka(NTRIPip.value, NTRIPport.value)
   })
 
   BTbleHledej.addEventListener("click", () => {
+    navigator.vibrate(25)
     BTbleHledej.className = "rotate_slow"
     BLEzobrazNEsparovanaZarizeni()
   })
 
   BTblePripoj.addEventListener("click", () => {
+    navigator.vibrate(25)
     BLEpripojZarizeni(SELble.value)
   })
 }

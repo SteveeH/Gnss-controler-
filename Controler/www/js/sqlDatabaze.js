@@ -129,12 +129,13 @@ Databaze.prototype.ulozBod = function(
   lon,
   alt,
   sep,
-  vyska
+  vyska,
+  typ
 ) {
   this.mydb.transaction(function(tx) {
     tx.executeSql(
       "INSERT INTO body (idZakazky, nazevBodu, lat, lon, alt, sep,vyska,typ) VALUES (?,?,?,?,?,?,?,?)",
-      [idZakazky, nazev, lat, lon, alt, sep, vyska, "mer"],
+      [idZakazky, nazev, lat, lon, alt, sep, vyska, typ],
       function(tx, rs) {
         /*  console.log(rs)
         console.log(tx) */
@@ -180,7 +181,7 @@ Databaze.prototype.nactiBodyZakazky = function(idZakazky, funkce) {
 Databaze.prototype.posledniBodZakazky = function(idZakazky, funkce) {
   this.mydb.transaction(function(transaction) {
     transaction.executeSql(
-      "SELECT * FROM body WHERE idZakazky=? ORDER BY datum DESC LIMIT 1",
+      'SELECT * FROM body WHERE idZakazky=? AND typ="mer" ORDER BY datum DESC LIMIT 1',
       [idZakazky],
       function(tx, rs) {
         funkce(rs.rows)
@@ -216,9 +217,9 @@ Databaze.prototype.exportujZakazku = function(idZakazky) {
               let pocetBodu = rs.rows.length
 
               txt += "Počet bodů : " + pocetBodu + "\n"
-              txt += "==========================================\n"
-              txt += "|nazev b.|lat|lon|alt|sep|vyska ant.|datum\n"
-              txt += "==========================================\n"
+              txt += "===================================================\n"
+              txt += "|nazev b.|lat|lon|alt|sep|vyska ant.|typ bodu|datum\n"
+              txt += "===================================================\n"
 
               for (let i = 0; i < pocetBodu; i++) {
                 let nazev = rs.rows[i]["nazevBodu"]
@@ -227,21 +228,24 @@ Databaze.prototype.exportujZakazku = function(idZakazky) {
                 let alt = rs.rows[i]["alt"]
                 let sep = rs.rows[i]["sep"]
                 let vyska = rs.rows[i]["vyska"]
+                let typ = rs.rows[i]["typ"]
                 let datum = rs.rows[i]["datum"]
 
                 txt +=
                   nazev +
-                  "," +
+                  ";" +
                   lat +
-                  "," +
+                  ";" +
                   lon +
-                  "," +
+                  ";" +
                   alt +
-                  "," +
+                  ";" +
                   sep +
-                  "," +
+                  ";" +
                   vyska +
-                  "," +
+                  ";" +
+                  typ +
+                  ";" +
                   datum +
                   "\n"
               }

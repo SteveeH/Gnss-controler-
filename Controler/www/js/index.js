@@ -33,9 +33,15 @@ var ZDtabulka = []
 var database = new Databaze() // WebSQL databaze
 var client
 var uloziste = window.localStorage
-var idZAKAZKY = 1 // zde se bude nacitat posledni nactena zakazka
+// nacteni posledni ulozene zakazky pokud, je aplikace spustena poprve nacte se ukazkova zakazka
+var idZAKAZKY = uloziste.zakazka ? Number(uloziste.zakazka) : 1
 var MERENI = []
 var vyskaAnteny
+
+var NTRIPcon = {
+  pripojeno: false,
+  ZDtabulka: []
+}
 
 var DATA = {
   GGA: {
@@ -73,6 +79,7 @@ var app = {
   },
   init: function() {
     eventy()
+
     database.initDB()
     database.vytvorTabulky()
     vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
@@ -97,11 +104,8 @@ var app = {
   },
   paused: function(ev) {
     console.log(ev)
-
-    //window.BackgroundService.start(function() { pozadi=true;pozadi();},function() { console.log('err') });
   },
   resumed: function(ev) {
-    //pozadi=false;
     console.log(ev)
   },
   history: ["#domov"]
@@ -165,8 +169,12 @@ function nactiData(pripojeno) {
     bluetoothSerial.subscribe(
       "\n",
       function(data) {
-        //console.log(data);
-        prekladNMEA(data, ulozeniGnnsDat)
+        // kontrola zacatku nmea zpravy
+        if (data.slice(0, 2) === "$G") {
+          prekladNMEA(data, ulozeniGnnsDat)
+        } else {
+          //console.log(data)
+        }
       },
       false
     )
@@ -179,10 +187,14 @@ function nactiData(pripojeno) {
 
 function prekladNMEA(veta, ulozeni) {
   // V teto podmince se rozhoduje zda se jedna o vetu, kterou chceme prelozit nebo nikoliv
-  if (veta.slice(3, 6) === "ZDA" || veta.slice(3, 6) === "RCM") {
+  if (
+    veta.slice(3, 6) === "ZDA" ||
+    veta.slice(3, 6) === "RCM" ||
+    veta.slice(3, 6) === "TXT"
+  ) {
     // nic
   } else if (veta.slice(3, 6) === "ARD") {
-    // informace poslane arduinem : stav baterie, pripojeni/odpojeni wifi atd.
+    // informace poslane arduinem : stav baterie atd.
   } else if (veta.slice(3, 6) === "GST") {
     // informace o presnosti mereni
     let rozdel = veta.split(",")
@@ -233,6 +245,14 @@ var ulozeniGnnsDat = function(objekt) {
         break
     }
   } else if (typVety === "GSA") {
+    // znaceni satelitu
+    // GP      : 1-32
+    // SBAS    : 33-64,152-158
+    // Gallieo : 301-336
+    // BeiDou  : 401-437
+    // IMES    : 173-182
+    // QZSS    : 193-197
+    // GLONASS : 65-96
     if (objekt.satellites[0] < 33) {
       // GP satelity
       DATA.GSA.HDOP = objekt.HDOP
@@ -240,7 +260,7 @@ var ulozeniGnnsDat = function(objekt) {
       DATA.GSA.VDOP = objekt.VDOP
       DATA.GSA.GP = objekt.satellites
       INFsatelity.innerText = DATA.GSA.GP.length + "/" + DATA.GSA.GL.length
-    } else {
+    } else if (64 < objekt.satellites[0] < 97) {
       // GLONASS satelity
       DATA.GSA.GL = objekt.satellites
       INFsatelity.innerText = DATA.GSA.GP.length + "/" + DATA.GSA.GL.length
@@ -328,11 +348,11 @@ function eventy() {
     },
     false
   )
-  document.getElementById("dron").addEventListener(
+  document.getElementById("vytyceni").addEventListener(
     "click",
     function() {
-      dron()
-      aktivOkno("dron")
+      vytyceni()
+      aktivOkno("vytyceni")
     },
     false
   )
@@ -396,9 +416,9 @@ function zpet() {
       mereni()
       aktivOkno("mereni")
       break
-    case "#dron":
-      dron()
-      aktivOkno("dron")
+    case "#vytyceni":
+      vytyceni()
+      aktivOkno("vytyceni")
       break
     case "#skyplot":
       skyplot()
@@ -431,9 +451,9 @@ function mereni() {
   eventyMereni()
 }
 
-function dron() {
-  app.history.push("#dron")
-  window.location.hash = "dron"
+function vytyceni() {
+  app.history.push("#vytyceni")
+  window.location.hash = "vytyceni"
   var rodic = document.getElementById("plocha")
   vymazPlochu(rodic)
 
@@ -488,11 +508,12 @@ function vymazPlochu(rodic) {
 }
 
 function aktivOkno(okno) {
+  navigator.vibrate(25)
   var zmacknuto = "rgb(50,50,50)"
   var nezmacknuto = "rgb(79,79,79)"
   var BtDomov = document.getElementById("domov")
   var BtMereni = document.getElementById("mereni")
-  var BtDron = document.getElementById("dron")
+  var BtVytyceni = document.getElementById("vytyceni")
   var BtSkyplot = document.getElementById("skyplot")
   var BtNastaveni = document.getElementById("nastaveni")
 
@@ -501,7 +522,7 @@ function aktivOkno(okno) {
       // zmena barvy
       BtDomov.style.backgroundColor = zmacknuto
       BtMereni.style.backgroundColor = nezmacknuto
-      BtDron.style.backgroundColor = nezmacknuto
+      BtVytyceni.style.backgroundColor = nezmacknuto
       BtSkyplot.style.backgroundColor = nezmacknuto
       BtNastaveni.className = ""
       return
@@ -509,15 +530,15 @@ function aktivOkno(okno) {
       // zmena barvy
       BtDomov.style.backgroundColor = nezmacknuto
       BtMereni.style.backgroundColor = zmacknuto
-      BtDron.style.backgroundColor = nezmacknuto
+      BtVytyceni.style.backgroundColor = nezmacknuto
       BtSkyplot.style.backgroundColor = nezmacknuto
       BtNastaveni.className = ""
       return
-    case "dron":
+    case "vytyceni":
       // zmena barvy
       BtDomov.style.backgroundColor = nezmacknuto
       BtMereni.style.backgroundColor = nezmacknuto
-      BtDron.style.backgroundColor = zmacknuto
+      BtVytyceni.style.backgroundColor = zmacknuto
       BtSkyplot.style.backgroundColor = nezmacknuto
       BtNastaveni.className = ""
       return
@@ -525,7 +546,7 @@ function aktivOkno(okno) {
       // zmena barvy
       BtDomov.style.backgroundColor = nezmacknuto
       BtMereni.style.backgroundColor = nezmacknuto
-      BtDron.style.backgroundColor = nezmacknuto
+      BtVytyceni.style.backgroundColor = nezmacknuto
       BtSkyplot.style.backgroundColor = zmacknuto
       BtNastaveni.className = ""
       return
@@ -533,7 +554,7 @@ function aktivOkno(okno) {
       // zmena barvy
       BtDomov.style.backgroundColor = nezmacknuto
       BtMereni.style.backgroundColor = nezmacknuto
-      BtDron.style.backgroundColor = nezmacknuto
+      BtVytyceni.style.backgroundColor = nezmacknuto
       BtSkyplot.style.backgroundColor = nezmacknuto
       BtNastaveni.className = "rotate_slow"
       return
@@ -541,7 +562,7 @@ function aktivOkno(okno) {
 }
 
 var HTMLnastaveni =
-  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""><img src="img/refresh.svg"/></button> <select id="ble_seznam"> </select> <button id="ble_pripoj">PŘIPOJ BLE</button> </div></div><hr/><div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..." id="NTRIPip"/> <input type="text" placeholder="port..." id="NTRIPport"/> <br/> <button id="NTRIPmntp">MoutnPointy</button> <br/> <select id="mount_seznam"> </select> <br/> <input type="text" placeholder="Uživatelské jméno" id="NTRIPuziv"/> <input type="password" placeholder="Heslo" id="NTRIPheslo"/> <button id="NTRIPpripoj">Připoj</button></div><hr/><div class="nast"><p>Nastavení zvuku</p></div>'
+  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""><img src="img/refresh.svg"/></button> <select id="ble_seznam"> </select> <button id="ble_pripoj">PŘIPOJ BLE</button> </div></div><hr/><div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..." id="NTRIPip"/> <input type="text" placeholder="port..." id="NTRIPport"/> <br/> <button id="NTRIPmntp">MoutnPointy</button> <br/> <select id="mount_seznam"> </select> <br/> <input type="text" placeholder="Uživatelské jméno" id="NTRIPuziv"/> <input type="password" placeholder="Heslo" id="NTRIPheslo"/> <button id="NTRIPpripoj">Připoj</button></div><hr/><div class="nast"><p>Konfigurace přijímače</p></div><hr/><div class="nast"><p>Nastavení zvuku</p></div>'
 
 var HTMLdomov =
   '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Vytvoř zakázku</option> </select> </div><button id="BTzobrazUlozeneBody">Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTimportBodu">Importuj body</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <img src="img/close.svg" alt=""/> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div><div class="modal" id="modalBody"> <button class="close" id="BTzavriBody"> <img src="img/close.svg" alt=""/> </button> <p class="modalInfo">Uložené body:</p><div class="Seznam" id="modalBodySeznam"></div></div></div>'
