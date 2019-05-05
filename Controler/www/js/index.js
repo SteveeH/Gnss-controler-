@@ -79,23 +79,21 @@ var app = {
   },
   init: function() {
     eventy()
-
     database.initDB()
     database.vytvorTabulky()
     vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
     client = new Socket() // TCP/NTRIP client
 
-    // tohle pak vymazat
-    setTimeout(() => {
-      BLEpripojZarizeni("98:D3:32:31:1C:8D")
-    }, 1000)
-    //
+    // nacteni adresy posledniho pripojeného zarizeni
+    if (uloziste.BTadresa) {
+      setTimeout(() => {
+        BLEpripojZarizeni(uloziste.BTadresa)
+      }, 1000)
+    }
 
     domov()
     aktivOkno("domov")
 
-    /* nahrajHodnoty(); //tohle uz nepotrebuji*/
-    /*  pripojArduino() */
     var intt = setInterval(function() {
       nactiData(gnnsPripojeno)
     }, 1000)
@@ -104,11 +102,14 @@ var app = {
   },
   paused: function(ev) {
     console.log(ev)
+    app.status = "paused"
   },
   resumed: function(ev) {
     console.log(ev)
+    app.status = "ready"
   },
-  history: ["#domov"]
+  history: ["#domov"],
+  status: "ready"
 }
 
 app.initialize()
@@ -169,11 +170,19 @@ function nactiData(pripojeno) {
     bluetoothSerial.subscribe(
       "\n",
       function(data) {
+        // ukladani dat do souboru .ubx
+
         // kontrola zacatku nmea zpravy
         if (data.slice(0, 2) === "$G") {
           prekladNMEA(data, ulozeniGnnsDat)
         } else {
-          //console.log(data)
+          // Prohledani surovych dat, ktere se neoddelují <CR><LF>
+          // a prvni NMEA zprava (tzn. GGA) se pripoji k nim
+
+          var zac = data.search("GNGGA")
+          if (zac != -1) {
+            prekladNMEA(data.slice(zac - 1), ulozeniGnnsDat)
+          }
         }
       },
       false
@@ -297,7 +306,7 @@ var ulozeniGnnsDat = function(objekt) {
       }
     } else {
       // pokud bychom prijmali data z jinych druzic nez GLONASS a GPS
-      // console.log(objekt.talker_id);
+      console.log(objekt.talker_id)
     }
   }
 }
@@ -317,7 +326,7 @@ function udelejToast(text, delka) {
   navigator.vibrate(delka)
 }
 
-function pripojArduino() {
+/* function pripojArduino() {
   bluetoothSerial.connect(
     "98:D3:32:31:1C:8D",
     function() {
@@ -329,7 +338,7 @@ function pripojArduino() {
       gnnsPripojeno = false
     }
   )
-}
+} */
 
 function eventy() {
   document.getElementById("domov").addEventListener(
@@ -562,7 +571,7 @@ function aktivOkno(okno) {
 }
 
 var HTMLnastaveni =
-  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""><img src="img/refresh.svg"/></button> <select id="ble_seznam"> </select> <button id="ble_pripoj">PŘIPOJ BLE</button> </div></div><hr/><div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..." id="NTRIPip"/> <input type="text" placeholder="port..." id="NTRIPport"/> <br/> <button id="NTRIPmntp">MoutnPointy</button> <br/> <select id="mount_seznam"> </select> <br/> <input type="text" placeholder="Uživatelské jméno" id="NTRIPuziv"/> <input type="password" placeholder="Heslo" id="NTRIPheslo"/> <button id="NTRIPpripoj">Připoj</button></div><hr/><div class="nast"><p>Konfigurace přijímače</p></div><hr/><div class="nast"><p>Nastavení zvuku</p></div>'
+  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""><img src="img/refresh.svg"/></button> <select id="ble_seznam"> </select> <button id="ble_pripoj">PŘIPOJ BLE</button> </div></div><hr/><div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..." id="NTRIPip"/> <input type="text" placeholder="port..." id="NTRIPport"/> <br/> <button id="NTRIPmntp">MoutnPointy</button> <br/> <select id="mount_seznam"> </select> <br/> <input type="text" placeholder="Uživatelské jméno" id="NTRIPuziv"/> <input type="password" placeholder="Heslo" id="NTRIPheslo"/> <button id="NTRIPpripoj">Připoj</button></div><hr/><div class="nast"><p>Podrobnosti mountpointu</p><div id="mntpTable"></div></div>'
 
 var HTMLdomov =
   '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Vytvoř zakázku</option> </select> </div><button id="BTzobrazUlozeneBody">Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTimportBodu">Importuj body</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <img src="img/close.svg" alt=""/> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div><div class="modal" id="modalBody"> <button class="close" id="BTzavriBody"> <img src="img/close.svg" alt=""/> </button> <p class="modalInfo">Uložené body:</p><div class="Seznam" id="modalBodySeznam"></div></div></div>'

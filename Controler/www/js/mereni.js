@@ -75,6 +75,13 @@ function zacniMerit() {
         MERcas.innerText = delkaMereniSTR(delkaMereni)
 
         if (delkaMereni > document.getElementById("SliderDobaMereni").value) {
+          if (app.status === "paused") {
+            cordova.plugins.notification.local.schedule({
+              title: "Měřený bod ",
+              text: "Bylo dosaženo požadované doby měření.."
+            })
+            app.status = "notification"
+          }
           BTmereni.style.backgroundColor = "green"
         } else {
           BTmereni.style.backgroundColor = "red"

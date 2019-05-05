@@ -45,6 +45,15 @@ function eventyNastaveni() {
   NTRIPpripoj.addEventListener("click", () => {
     navigator.vibrate(25)
     // kontrola vstupu
+    if (navigator.connection.type === "none") {
+      udelejToast("Připojení k internetu není k dispozici.", 500)
+      return
+    }
+    if (NTRIPcon.ZDtabulka.length == 0) {
+      udelejToast("Vyhledej dostupné mountpointy.", 500)
+      return
+    }
+
     if (NTRIPpripoj.innerText === "Připoj") {
       NTRIPClient(
         NTRIPip.value,
@@ -68,6 +77,10 @@ function eventyNastaveni() {
     zdrojovaTabulka(NTRIPip.value, NTRIPport.value)
   })
 
+  MNTPseznam.addEventListener("change", () => {
+    podrobnostiMNTP()
+  })
+
   BTbleHledej.addEventListener("click", () => {
     navigator.vibrate(25)
     BTbleHledej.className = "rotate_slow"
@@ -77,5 +90,40 @@ function eventyNastaveni() {
   BTblePripoj.addEventListener("click", () => {
     navigator.vibrate(25)
     BLEpripojZarizeni(SELble.value)
+    localStorage.setItem("BTadresa", SELble.value)
   })
+}
+
+function podrobnostiMNTP() {
+  let MNTPseznam = document.getElementById("mount_seznam")
+  var mntpTable = document.getElementById("mntpTable")
+  var str = ""
+
+  let pozicePrijim = {
+    lat: DATA.GGA.LAT,
+    lon: DATA.GGA.LON,
+    alt: DATA.GGA.ALT
+  }
+  let poziceSource = {
+    lat: parseFloat(NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][9]),
+    lon: parseFloat(NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][10]),
+    alt: 0
+  }
+
+  // vypocet
+  let delka = zaokrouhli(geodesyDistance(poziceSource, pozicePrijim) / 1000, 1)
+
+  str += '<table class="ntrip"><tr><td>Název MNTP</td><td id="nazevMNTP">'
+  str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][2]
+  str += '</td></tr><tr><td>Vzdálenost k bodu</td><td id="vzdalMNTP">'
+  str += delka + " km"
+  str += '</td></tr><tr><td>Poskytovatel korekcí</td><td id="poskytovatelMNTP">'
+  str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][7]
+  str += '</td></tr><tr><td>Zpoplatnění dat</td><td id="zpoplatneniMNTP">'
+  str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][16] === "Y" ? "ANO" : "NE"
+  str += '</td></tr><tr><td>Přenosová rychlost</td><td id="rychlostMNTP">'
+  str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][17]
+  str += "</td></tr></table>"
+
+  mntpTable.innerHTML = str
 }

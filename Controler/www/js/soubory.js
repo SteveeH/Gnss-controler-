@@ -8,10 +8,7 @@ function SSOubor(name) {
       fs.root.getFile(
         name + ".txt",
         { create: true, exclusive: false },
-        function(fileEntry) {
-          /* console.log(fileEntry)
-          console.log("fileEntry is file?" + fileEntry.isFile.toString()) */
-        },
+        function(fileEntry) {},
         onError
       )
     },
@@ -56,10 +53,10 @@ function exportujMereni(jmenoZakazky, info) {
     0,
     function(fs) {
       fs.root.getDirectory(
-        "CVUT_gnss",
+        "GNSS_Kontroler",
         { create: true, exclusive: false },
         function(subDirEntry) {
-          // Vytvoreni slozky CVUT_gnss, kde se ukladaji jednotlive podslozky zakazek
+          // Vytvoreni slozky GNSS_Kontroler, kde se ukladaji jednotlive podslozky zakazek
           subDirEntry.getDirectory(
             jmenoZakazky,
             { create: true },
@@ -74,11 +71,11 @@ function exportujMereni(jmenoZakazky, info) {
 
                   fileEntry.createWriter(function(fileWriter) {
                     fileWriter.onwriteend = function(e) {
-                      console.log("Write completed.")
+                      console.log("Export měření proběhl v pořádku.")
                     }
 
                     fileWriter.onerror = function(e) {
-                      console.log("Write failed: " + e.toString())
+                      console.log("Export měření selhal: " + e.toString())
                     }
 
                     // Novy blob - vlozeni naseho textu

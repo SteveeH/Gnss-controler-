@@ -49,8 +49,33 @@ function eventyVytyceni() {
   BTulozBod.addEventListener("click", () => {
     // Potvrzeni zda chci opravdu bod ulozit (zobrazeni rozdilu souř.) nebo
     // budu pokracovat v mereni
+    let poziceStav = { lat: DATA.GGA.LAT, lon: DATA.GGA.LON, alt: DATA.GGA.ALT }
+    let poziceVyt = { lat: BodVytyc.lat, lon: BodVytyc.lon, alt: BodVytyc.alt }
 
-    if (confirm("Ulozit vytycený bod??\n" + "dx: 1.532 m\n" + "dy: 1.059 m")) {
+    // vypocet
+    let azimut = geodesyAzimuth(poziceStav, poziceVyt)
+    let delka = geodesyDistance(poziceStav, poziceVyt)
+
+    let sj = zaokrouhli(delka * Math.cos((azimut * Math.PI) / 180), 3)
+    let vz = zaokrouhli(delka * Math.sin((azimut * Math.PI) / 180), 3)
+
+    let dlat = zaokrouhli(poziceVyt.lat - poziceStav.lat, 10)
+    let dlon = zaokrouhli(poziceVyt.lon - poziceStav.lon, 10)
+    if (
+      confirm(
+        "Opravdu chcete uložit bod??\n" +
+          "dLat: " +
+          dlat +
+          "° (" +
+          Math.abs(sj) +
+          " m)\n" +
+          "dLon: " +
+          dlon +
+          "° (" +
+          Math.abs(vz) +
+          " m)"
+      )
+    ) {
       document.getElementById("BTulozBod").style.display = "none"
       document.getElementById("VYTcisloBodu").innerText = "Vytyčení bodu: "
 
@@ -253,13 +278,13 @@ function graf1(sj, vz) {
   ctx.save()
   //
   ctx.translate(sirka / 2, vyska / 2)
-  // vykresleni vnejsi okraj => odpovida 3 m
+  // vykresleni vnejsi okraj => odpovida 3/0.5 m
   ctx.beginPath()
   ctx.strokeStyle = "black"
   ctx.lineWidth = 2
   ctx.arc(0, 0, maxPolomer, 0, 2 * Math.PI)
   ctx.stroke()
-  // vykresleni vnitrni okraj => odpovida 1,5 m
+  // vykresleni vnitrni okraj => odpovida 1,5/0.25 m
   ctx.beginPath()
   ctx.strokeStyle = "black"
   ctx.lineWidth = 2

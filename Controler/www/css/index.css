@@ -143,3 +143,7 @@ div.BLE {
 div.BLE p {
   font-size: 10px;
 }
+
+table.ntrip tr td:first-child {
+  text-align: left;
+}

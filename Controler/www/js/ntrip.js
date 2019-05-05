@@ -147,6 +147,8 @@ function vysledkyTabulky(tabulka) {
 
   // vyplneni select MountPointu
   document.getElementById("mount_seznam").innerHTML = str
+  // zobrazeni podrobnosti o zvolenem MountPointu
+  podrobnostiMNTP()
 }
 
 // kodovani base64
