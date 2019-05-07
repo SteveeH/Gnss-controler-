@@ -30,10 +30,11 @@ Databaze.prototype.vytvorTabulky = function() {
       },
       function(sqlTransaction, sqlError) {
         console.log("Table zakazky err: " + sqlError.message)
+        udelejToast("Zakázka nebyla vytvořena, jméno musí být jedinečné", 500)
       }
     )
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS body (id INTEGER PRIMARY KEY AUTOINCREMENT, idZakazky INTEGER, nazevBodu INT NOT NULL, lat FLOAT, lon FLOAT, alt FLOAT, sep FLOAT, vyska FLOAT, datum TIMESTAMP DEFAULT (datetime('now','localtime')), typ CHAR)",
+      "CREATE TABLE IF NOT EXISTS body (id INTEGER PRIMARY KEY AUTOINCREMENT, idZakazky INTEGER, nazevBodu INT NOT NULL, lat FLOAT, lon FLOAT, alt FLOAT,  dLat FLOAT, dLon FLOAT, dAlt FLOAT, sep FLOAT, vyska FLOAT, datum TIMESTAMP DEFAULT (datetime('now','localtime')), typ CHAR)",
       [],
       function(sqlTransaction, sqlResultSet) {
         /* console.log("Tabulka body byla zalozena.") */
@@ -59,16 +60,6 @@ Databaze.prototype.vytvorTabulky = function() {
         console.log("Vytvoreni testovaci zakazky err : " + e.message)
       }
     )
-    /* tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS let (idLetu INTEGER PRIMARY KEY , idZakazky INTEGER, nazevLetu TEXT, lat FLOAT, lon FLOAT, alt FLOAT, sep FLOAT, datum CHAR, popis TEXT)",
-      [],
-      function(sqlTransaction, sqlResultSet) {
-        console.log("Table let been created.")
-      },
-      function(sqlTransaction, sqlError) {
-        console.log("Table let err: " + sqlError.message)
-      }
-    ) */
   })
 }
 
@@ -126,16 +117,19 @@ Databaze.prototype.ulozBod = function(
   idZakazky,
   nazev,
   lat,
+  dLat,
   lon,
+  dLon,
   alt,
+  dAlt,
   sep,
   vyska,
   typ
 ) {
   this.mydb.transaction(function(tx) {
     tx.executeSql(
-      "INSERT INTO body (idZakazky, nazevBodu, lat, lon, alt, sep,vyska,typ) VALUES (?,?,?,?,?,?,?,?)",
-      [idZakazky, nazev, lat, lon, alt, sep, vyska, typ],
+      "INSERT INTO body (idZakazky, nazevBodu, lat, lon, alt,dLat, dLon, dAlt, sep,vyska,typ) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+      [idZakazky, nazev, lat, lon, alt, dLat, dLon, dAlt, sep, vyska, typ],
       function(tx, rs) {
         /*  console.log(rs)
         console.log(tx) */
@@ -217,9 +211,12 @@ Databaze.prototype.exportujZakazku = function(idZakazky) {
               let pocetBodu = rs.rows.length
 
               txt += "Počet bodů : " + pocetBodu + "\n"
-              txt += "===================================================\n"
-              txt += "|nazev b.|lat|lon|alt|sep|vyska ant.|typ bodu|datum\n"
-              txt += "===================================================\n"
+              txt +=
+                "==================================================================\n"
+              txt +=
+                "|nazev b.|lat|lon|alt|sep|dLat|dLon|dAlt|vyska ant.|typ bodu|datum\n"
+              txt +=
+                "==================================================================\n"
 
               for (let i = 0; i < pocetBodu; i++) {
                 let nazev = rs.rows[i]["nazevBodu"]
@@ -241,6 +238,12 @@ Databaze.prototype.exportujZakazku = function(idZakazky) {
                   alt +
                   ";" +
                   sep +
+                  ";" +
+                  dLat +
+                  ";" +
+                  dLon +
+                  ";" +
+                  dAlt +
                   ";" +
                   vyska +
                   ";" +

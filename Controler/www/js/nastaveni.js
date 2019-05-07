@@ -123,6 +123,8 @@ function podrobnostiMNTP() {
   str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][16] === "Y" ? "ANO" : "NE"
   str += '</td></tr><tr><td>Přenosová rychlost</td><td id="rychlostMNTP">'
   str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][17]
+  str += '</td></tr><tr><td>Typ korekcí</td><td id="korekceMNTP">'
+  str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][3]
   str += "</td></tr></table>"
 
   mntpTable.innerHTML = str

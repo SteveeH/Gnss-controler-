@@ -29,7 +29,6 @@ var lastGGA = ""
 var gnnsPripojeno = false
 
 var BLUETOOTH
-var ZDtabulka = []
 var database = new Databaze() // WebSQL databaze
 var client
 var uloziste = window.localStorage
@@ -41,6 +40,12 @@ var vyskaAnteny
 var NTRIPcon = {
   pripojeno: false,
   ZDtabulka: []
+}
+
+var UBX = {
+  bool: false,
+  nazevZakazky: "",
+  nazevSouboru: ""
 }
 
 var DATA = {
@@ -128,7 +133,7 @@ app.initialize()
         console.log("aa");
     }
 } */
-
+var RAW = []
 function nactiData(pripojeno) {
   // tato funkce zkontroluje pripojeni k arduinu/gnns prijimaci a pokud je pripojen, zacne
   // ukladat data prijata v nmea zpravach..
@@ -166,22 +171,58 @@ function nactiData(pripojeno) {
     }
   )
 
+  /* bluetoothSerial.subscribeRawData(
+    function(data) {
+      console.log(data)
+      //RAW.push(data)
+      var bytes = new Uint8Array(data)
+      bytes.forEach(b => {
+        RAW.push(b)
+      })
+      //console.log(data)
+      //console.log(bytes)
+      //console.log(String.fromCharCode.apply(null, bytes))
+
+      if (RAW.length > 1000) {
+        var BL = new Blob(RAW)
+        ulozRawData("UBX", "funkcniQQ", BL)
+      }
+    },
+    () => {
+      console.log("Chyba v prijmu dat!!")
+    }
+  ) */
+
   if (pripojeno) {
     bluetoothSerial.subscribe(
       "\n",
       function(data) {
-        // ukladani dat do souboru .ubx
-
         // kontrola zacatku nmea zpravy
         if (data.slice(0, 2) === "$G") {
           prekladNMEA(data, ulozeniGnnsDat)
         } else {
           // Prohledani surovych dat, ktere se neoddelují <CR><LF>
           // a prvni NMEA zprava (tzn. GGA) se pripoji k nim
+          var zacGGA = data.search("GNGGA")
 
-          var zac = data.search("GNGGA")
-          if (zac != -1) {
-            prekladNMEA(data.slice(zac - 1), ulozeniGnnsDat)
+          if (zacGGA != -1) {
+            // data obsahuji GGA zpravu
+            prekladNMEA(data.slice(zacGGA - 1), ulozeniGnnsDat)
+
+            if (UBX.bool) {
+              // ulozRawData(
+              // UBX.nazevZakazky,
+              // UBX.nazevSouboru,
+              // data.slice(0, zacGGA - 1)
+              //)
+              unpack(data.slice(0, zacGGA - 1))
+            }
+          } else {
+            // data neobsahuji GGA zpravu
+            if (UBX.bool) {
+              //ulozRawData(UBX.nazevZakazky, UBX.nazevSouboru, data)
+              unpack(data)
+            }
           }
         }
       },
@@ -193,6 +234,16 @@ function nactiData(pripojeno) {
     INFble.src = "img/ble_disconnected.svg"
   }
 }
+
+/* function unpack(str) {
+  let bytes = []
+  for (let i = 0; i < str.length; i++) {
+    let char = str.charCodeAt(i)
+    bytes.push(char >>> 8)
+    bytes.push(char & 0xff)
+  }
+  ulozRawData(UBX.nazevZakazky, UBX.nazevSouboru, str)
+} */
 
 function prekladNMEA(veta, ulozeni) {
   // V teto podmince se rozhoduje zda se jedna o vetu, kterou chceme prelozit nebo nikoliv

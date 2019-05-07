@@ -136,13 +136,42 @@ function ulozZmerenyBod(data, nazevBodu, vyskaAnteny) {
     }
   })
 
+  // vypocet prumernych hodnot
+  let pLat = zaokrouhli(lat / ctr, 10)
+  let pLon = zaokrouhli(lon / ctr, 10)
+  let pAlt = zaokrouhli(alt / ctr, 10)
+  let pSep = zaokrouhli(sep / ctr, 10)
+
+  // urceni maxmalniho rozdilu od prumeru
+  let dLat = 0
+  let dLon = 0
+  let dAlt = 0
+
+  data.forEach(el => {
+    dLat =
+      pLat - parseFloat(el.GGA.LAT) > dLat
+        ? pLat - parseFloat(el.GGA.LAT)
+        : dLat
+    dLon =
+      dLon - parseFloat(el.GGA.LON) > dLon
+        ? pLon - parseFloat(el.GGA.LON)
+        : dLon
+    dAlt =
+      pAlt - parseFloat(el.GGA.ALT) > dAlt
+        ? pAlt - parseFloat(el.GGA.ALT)
+        : dAlt
+  })
+
   database.ulozBod(
     idZAKAZKY,
     nazevBodu,
-    zaokrouhli(lat / ctr, 10),
-    zaokrouhli(lon / ctr, 10),
-    zaokrouhli(alt / ctr, 3),
-    zaokrouhli(sep / ctr, 3),
+    pLat,
+    pLon,
+    pAlt,
+    pSep,
+    dLat,
+    dLon,
+    dAlt,
     vyskaAnteny,
     "mer"
   )

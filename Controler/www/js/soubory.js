@@ -34,7 +34,7 @@ function importujMereni(filePath) {
             var reader = new FileReader()
 
             reader.onloadend = function(e) {
-              console.log(this.result)
+              //console.log(this.result)
               rozdeleniDat(this.result)
             }
             reader.readAsText(file)
@@ -111,4 +111,54 @@ function rozdeleniDat(txt) {
   }
 
   importDat(vysledek)
+}
+
+function ulozRawData(jmenoZakazky, nazevSoubor, data) {
+  window.requestFileSystem(
+    LocalFileSystem.PERSISTENT,
+    0,
+    function(fs) {
+      fs.root.getDirectory(
+        "GNSS_Kontroler",
+        { create: true, exclusive: false },
+        function(subDirEntry) {
+          // Vytvoreni slozky GNSS_Kontroler, kde se ukladaji jednotlive podslozky zakazek
+          subDirEntry.getDirectory(
+            jmenoZakazky,
+            { create: true },
+            // Vytvoreni slozky zakazky
+            function(subDirEntry) {
+              // Vytvoreni souboru body
+              subDirEntry.getFile(
+                nazevSoubor + ".txt",
+                { create: true, exclusive: false },
+                function(fileEntry) {
+                  // Zapis informaci do souboru,
+
+                  fileEntry.createWriter(function(fileWriter) {
+                    fileWriter.onwriteend = function(e) {
+                      console.log("Data zapsána...")
+                    }
+
+                    fileWriter.onerror = function(e) {
+                      console.log("Export měření selhal: " + e.toString())
+                    }
+                    // presun kurzoru na konec souboru
+                    fileWriter.seek(fileWriter.length)
+                    // zapis dat
+
+                    fileWriter.write(data)
+                  }, onError)
+                },
+                onError
+              )
+            },
+            onError
+          )
+        },
+        onError
+      )
+    },
+    onError
+  )
 }

@@ -61,6 +61,7 @@ function eventyVytyceni() {
 
     let dlat = zaokrouhli(poziceVyt.lat - poziceStav.lat, 10)
     let dlon = zaokrouhli(poziceVyt.lon - poziceStav.lon, 10)
+    let dalt = zaokrouhli(poziceVyt.alt - poziceStav.alt + vyskaAnteny, 3)
     if (
       confirm(
         "Opravdu chcete uložit bod??\n" +
@@ -97,6 +98,9 @@ function eventyVytyceni() {
         DATA.GGA.LON,
         DATA.GGA.ALT,
         DATA.GGA.SEP,
+        dlat,
+        dlon,
+        dalt,
         vyskaAnteny,
         "vyt"
       )
