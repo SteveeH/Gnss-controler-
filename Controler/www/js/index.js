@@ -36,6 +36,7 @@ var uloziste = window.localStorage
 var idZAKAZKY = uloziste.zakazka ? Number(uloziste.zakazka) : 1
 var naZakazky
 var MERENI
+var delkaMereni
 var vyskaAnteny
 
 var NTRIPcon = {
@@ -259,7 +260,7 @@ var ulozeniGnnsDat = function(objekt) {
       case "frtk": // RTK - float
         INFfix.style.fill = "orange"
         break
-      case "estimated": // RTK - auto
+      case "estimated": //
         INFfix.style.fill = "red"
         break
       default:

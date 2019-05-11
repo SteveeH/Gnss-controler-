@@ -117,8 +117,6 @@ function NTRIPClient(adresa, port, mountpoint, virtual, uzivatel, heslo) {
       })
       // poslani korekcnich dat pres BT
       bluetoothSerial.write(data)
-      /*  console.log(data)*/
-      console.log(str)
       NTRIPcon.pripojeno = true
     }
 

@@ -224,6 +224,7 @@ function vytycuj() {
   if (window.location.hash != "#vytyceni") {
     clearInterval(intVytyceni)
     console.log("ukončeni vytyčování")
+    return
   }
 
   let poziceStav = { lat: DATA.GGA.LAT, lon: DATA.GGA.LON, alt: DATA.GGA.ALT }
@@ -236,7 +237,7 @@ function vytycuj() {
   let prevyseni = zaokrouhli(poziceVyt.alt - poziceStav.alt + vyskaAnteny, 3)
 
   let sj, vz
-  if (isNaN(azimuth)) {
+  if (isNaN(azimut)) {
     sj = 0
     vz = 0
   } else {

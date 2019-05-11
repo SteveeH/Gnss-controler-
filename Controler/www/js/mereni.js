@@ -72,7 +72,7 @@ function zacniMerit() {
       // prazdny objekt pro ulozeni merenych dat
       MERENI = []
 
-      var delkaMereni = 0
+      delkaMereni = 0
 
       intMereni = setInterval(function() {
         delkaMereni++
