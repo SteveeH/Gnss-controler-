@@ -35,8 +35,11 @@ var uloziste = window.localStorage
 // nacteni posledni ulozene zakazky pokud, je aplikace spustena poprve nacte se ukazkova zakazka
 var idZAKAZKY = uloziste.zakazka ? Number(uloziste.zakazka) : 1
 var naZakazky
-var MERENI
-var delkaMereni
+var MERENI = {
+  bool: false,
+  data: [],
+  delkaMereni: 0
+}
 var vyskaAnteny
 
 var NTRIPcon = {
@@ -80,6 +83,8 @@ var intVytyceni = null
 var ntripInt = null
 var BodVytyc
 var sky
+var MERcas
+var BTmereni
 
 var app = {
   // kontruktor aplikace
