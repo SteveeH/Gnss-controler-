@@ -1,6 +1,7 @@
 function eventyMereni() {
   let SLdobaMereni = document.getElementById("SliderDobaMereni")
   let BTmereni = document.getElementById("BTmereni")
+  let BTRaw = document.getElementById("BTRaw")
   let MERvyskaAnteny = document.getElementById("MERvyskaAnteny")
   let MERnazevBodu = document.getElementById("MERnazevBodu")
 
@@ -20,7 +21,6 @@ function eventyMereni() {
     MERnazevBodu.value = cb[0]["nazevBodu"] + 1
   })
 
-  zobrazPosledniCisloBodu()
   zobrazDobuMereni()
 
   intInfoMereni = setInterval(function() {
@@ -35,6 +35,10 @@ function eventyMereni() {
     let text = BTmereni.innerText
 
     text === "MĚŘ" ? zacniMerit() : ulozMereni()
+  })
+
+  BTRaw.addEventListener("click", () => {
+    logovaniRawDat()
   })
 
   MERvyskaAnteny.addEventListener("change", () => {
@@ -65,13 +69,16 @@ function zacniMerit() {
       console.log("Měřím")
       BTmereni.innerText = "ULOŽ"
       BTmereni.style.backgroundColor = "red"
+      // prazdny objekt pro ulozeni merenych dat
+      MERENI = []
 
-      MERENI = [] // prazdny objekt pro ulozeni merenych dat
       var delkaMereni = 0
 
       intMereni = setInterval(function() {
         delkaMereni++
-        MERENI.push(DATA)
+
+        MERENI.push(JSON.parse(JSON.stringify(DATA)))
+
         MERcas.innerText = delkaMereniSTR(delkaMereni)
 
         if (delkaMereni > document.getElementById("SliderDobaMereni").value) {
@@ -98,6 +105,16 @@ function ulozMereni() {
   let MERvyskaAnteny = document.getElementById("MERvyskaAnteny")
   let MERcas = document.getElementById("MERcas")
   let noveCislo, stareCislo, vyskaAnteny
+
+  // preruseni logovani Raw dat, pokud byla ukladana
+  if (UBX.bool) {
+    UBX = {
+      bool: false,
+      nazevZakazky: "",
+      nazevSouboru: "",
+      RAW: new Uint8Array()
+    }
+  }
 
   // změna popisku
   BTmereni.innerText = "MĚŘ"
@@ -139,8 +156,8 @@ function ulozZmerenyBod(data, nazevBodu, vyskaAnteny) {
   // vypocet prumernych hodnot
   let pLat = zaokrouhli(lat / ctr, 10)
   let pLon = zaokrouhli(lon / ctr, 10)
-  let pAlt = zaokrouhli(alt / ctr, 10)
-  let pSep = zaokrouhli(sep / ctr, 10)
+  let pAlt = zaokrouhli(alt / ctr, 3)
+  let pSep = zaokrouhli(sep / ctr, 3)
 
   // urceni maxmalniho rozdilu od prumeru
   let dLat = 0
@@ -149,32 +166,89 @@ function ulozZmerenyBod(data, nazevBodu, vyskaAnteny) {
 
   data.forEach(el => {
     dLat =
-      pLat - parseFloat(el.GGA.LAT) > dLat
-        ? pLat - parseFloat(el.GGA.LAT)
+      Math.abs(pLat - parseFloat(el.GGA.LAT)) > dLat
+        ? Math.abs(pLat - parseFloat(el.GGA.LAT))
         : dLat
     dLon =
-      dLon - parseFloat(el.GGA.LON) > dLon
-        ? pLon - parseFloat(el.GGA.LON)
+      Math.abs(pLon - parseFloat(el.GGA.LON)) > dLon
+        ? Math.abs(pLon - parseFloat(el.GGA.LON))
         : dLon
     dAlt =
-      pAlt - parseFloat(el.GGA.ALT) > dAlt
-        ? pAlt - parseFloat(el.GGA.ALT)
-        : dAlt
+      Math.abs(pAlt - el.GGA.ALT) > dAlt ? Math.abs(pAlt - el.GGA.ALT) : dAlt
   })
 
   database.ulozBod(
     idZAKAZKY,
     nazevBodu,
     pLat,
-    pLon,
-    pAlt,
-    pSep,
     dLat,
+    pLon,
     dLon,
+    pAlt,
     dAlt,
+    pSep,
     vyskaAnteny,
     "mer"
   )
+}
+
+function logovaniRawDat() {
+  let MERnazevBodu = document.getElementById("MERnazevBodu")
+  let MERvyskaAnteny = document.getElementById("MERvyskaAnteny")
+  let datum = new Date()
+
+  // kontrola vstupnich dat a pripojeni prijimace
+  if (gnnsPripojeno) {
+    if (MERnazevBodu.value === "" || MERvyskaAnteny.value === "") {
+      udelejToast("Vyplň název bodu a výšku antény.")
+    } else {
+      // Generovani nazvu souboru
+      let str = ""
+      str += datum
+        .getFullYear()
+        .toString()
+        .slice(2)
+
+      str +=
+        datum.getMonth() < 10
+          ? "0" + datum.getMonth().toString()
+          : datum.getMonth().toString()
+
+      str +=
+        datum.getDate() < 10
+          ? "0" + datum.getDate().toString()
+          : datum.getDate().toString()
+
+      str += "_"
+      str +=
+        datum.getHours() < 10
+          ? "0" + datum.getHours().toString()
+          : datum.getHours().toString()
+      str +=
+        datum.getMinutes() < 10
+          ? "0" + datum.getMinutes().toString()
+          : datum.getMinutes().toString()
+      str +=
+        datum.getSeconds() < 10
+          ? "0" + datum.getSeconds().toString()
+          : datum.getSeconds().toString()
+      str += "_"
+      str += MERnazevBodu.value
+      // mozna pridat i vysku anteny do nazvu
+
+      // spusteni normalniho mereni
+      zacniMerit()
+      // potvrzeni logovani raw dat + vyplneni nazvu souboru
+      UBX = {
+        bool: true,
+        nazevZakazky: naZakazky,
+        nazevSouboru: str,
+        RAW: new Uint8Array()
+      }
+    }
+  } else {
+    udelejToast("Gnss přijimač není připojen..", 500)
+  }
 }
 
 function zobrazInfoMereni() {
@@ -204,7 +278,4 @@ function delkaMereniSTR(vteriny) {
   str += sec < 10 ? "0" + sec : sec
 
   return str
-}
-function zobrazPosledniCisloBodu() {
-  //
 }

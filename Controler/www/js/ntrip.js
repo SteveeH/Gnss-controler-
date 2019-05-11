@@ -1,5 +1,5 @@
 // TODO:
-// kontrola propojeni k internetu
+// kontrola propojeni k internetu - done
 
 function zdrojovaTabulka(adresa, port) {
   let ODPOVED = ""
@@ -72,7 +72,27 @@ function NTRIPClient(adresa, port, mountpoint, virtual, uzivatel, heslo) {
       if (virtual) {
         dataString += lastGGA
         dataString += "\r\n"
+        // zaslani zpresnene polohy s casovym odstupem
+        ntripInt = setInterval(() => {
+          let dataStringNew = lastGGA + "\r\n"
+
+          var dataNew = new Uint8Array(dataStringNew.length)
+          for (var i = 0; i < dataNew.length; i++) {
+            dataNew[i] = dataStringNew.charCodeAt(i)
+          }
+
+          client.write(
+            dataNew,
+            () => {
+              console.log("Aktuální poloha zaslána..")
+            },
+            message => {
+              console.log("Err: " + JSON.stringify(message))
+            }
+          )
+        }, 15000)
       }
+
       var data = new Uint8Array(dataString.length)
       for (var i = 0; i < data.length; i++) {
         data[i] = dataString.charCodeAt(i)
@@ -90,15 +110,15 @@ function NTRIPClient(adresa, port, mountpoint, virtual, uzivatel, heslo) {
     })
 
     client.onData = function(data) {
-      //console.log(data.length)
       let str = ""
 
       data.forEach(el => {
         str += String.fromCharCode(el)
       })
-      // poslani korekcnich dat pres BLE
+      // poslani korekcnich dat pres BT
       bluetoothSerial.write(data)
-      //console.log(str)
+      /*  console.log(data)*/
+      console.log(str)
       NTRIPcon.pripojeno = true
     }
 
@@ -112,6 +132,7 @@ function NTRIPClient(adresa, port, mountpoint, virtual, uzivatel, heslo) {
 
       console.log("Byl error? :" + hasError)
       NTRIPcon.pripojeno = false
+      clearInterval(ntripInt)
     }
   }
 }

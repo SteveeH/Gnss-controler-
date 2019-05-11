@@ -63,6 +63,7 @@ function eventyDomov() {
 
     let odpoved = confirm(
       "Opravdu chcete vymazat zakázku - " +
+        //naZakazky +
         Select.options[Select.selectedIndex].innerText +
         " ??"
     )
@@ -81,8 +82,8 @@ function eventyDomov() {
   })
 
   BTimportBodu.addEventListener("click", () => {
-    // Otevreni nativni aplikace, kde se vybere soubor, ktery se ma
-    // souradnice bodu
+    // Otevreni nativni aplikace, kde se vybere soubor, ktery obsahuje
+    // seznam souradnic
 
     // link:
     //https://ourcodeworld.github.io/cordova/cordova-filebrowser.html
@@ -107,6 +108,7 @@ function eventyDomov() {
   Select.addEventListener("change", () => {
     console.log("Zvolena zakázka: " + Select.value)
     idZAKAZKY = Select.value
+    database.nazevZakazky(idZAKAZKY)
     window.localStorage.setItem("zakazka", idZAKAZKY.toString())
     database.infoZakazka(Select.value)
   })

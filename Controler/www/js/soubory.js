@@ -130,7 +130,7 @@ function ulozRawData(jmenoZakazky, nazevSoubor, data) {
             function(subDirEntry) {
               // Vytvoreni souboru body
               subDirEntry.getFile(
-                nazevSoubor + ".txt",
+                nazevSoubor + ".ubx",
                 { create: true, exclusive: false },
                 function(fileEntry) {
                   // Zapis informaci do souboru,

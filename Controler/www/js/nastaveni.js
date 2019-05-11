@@ -59,7 +59,7 @@ function eventyNastaveni() {
         NTRIPip.value,
         NTRIPport.value,
         NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][1],
-        NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][11],
+        Number(NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][11]),
         NTRIPuziv.value,
         NTRIPheslo.value
       )
@@ -98,6 +98,7 @@ function podrobnostiMNTP() {
   let MNTPseznam = document.getElementById("mount_seznam")
   var mntpTable = document.getElementById("mntpTable")
   var str = ""
+  let delka
 
   let pozicePrijim = {
     lat: DATA.GGA.LAT,
@@ -110,8 +111,16 @@ function podrobnostiMNTP() {
     alt: 0
   }
 
-  // vypocet
-  let delka = zaokrouhli(geodesyDistance(poziceSource, pozicePrijim) / 1000, 1)
+  // vypocet delky mezi referencnim a nasim prijmacem
+  // pokud se jedna o virtualni stanice nebo nemame pripojeny prijimac delka nebude spoctena
+  if (
+    DATA.GGA.LAT == 0 ||
+    Number(NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][11])
+  ) {
+    delka = " / "
+  } else {
+    delka = zaokrouhli(geodesyDistance(poziceSource, pozicePrijim) / 1000, 1)
+  }
 
   str += '<table class="ntrip"><tr><td>Název MNTP</td><td id="nazevMNTP">'
   str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][2]
@@ -125,6 +134,10 @@ function podrobnostiMNTP() {
   str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][17]
   str += '</td></tr><tr><td>Typ korekcí</td><td id="korekceMNTP">'
   str += NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][3]
+  str += '</td></tr><tr><td>Typ stanice</td><td id="staniceMNTP">'
+  str += Number(NTRIPcon.ZDtabulka[MNTPseznam.selectedIndex][11])
+    ? "Virtuální"
+    : "Fyzická"
   str += "</td></tr></table>"
 
   mntpTable.innerHTML = str

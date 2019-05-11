@@ -95,12 +95,12 @@ function eventyVytyceni() {
         idZAKAZKY,
         BodVytyc.nazevBodu + "vyt",
         DATA.GGA.LAT,
-        DATA.GGA.LON,
-        DATA.GGA.ALT,
-        DATA.GGA.SEP,
         dlat,
+        DATA.GGA.LON,
         dlon,
+        DATA.GGA.ALT,
         dalt,
+        DATA.GGA.SEP,
         vyskaAnteny,
         "vyt"
       )
@@ -235,8 +235,14 @@ function vytycuj() {
   // let vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
   let prevyseni = zaokrouhli(poziceVyt.alt - poziceStav.alt + vyskaAnteny, 3)
 
-  let sj = delka * Math.cos((azimut * Math.PI) / 180)
-  let vz = delka * Math.sin((azimut * Math.PI) / 180)
+  let sj, vz
+  if (isNaN(azimuth)) {
+    sj = 0
+    vz = 0
+  } else {
+    sj = delka * Math.cos((azimut * Math.PI) / 180)
+    vz = delka * Math.sin((azimut * Math.PI) / 180)
+  }
 
   // zobrazeni informaci
   document.getElementById("VYTvzdalBod").innerText = delka + " m"

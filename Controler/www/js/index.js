@@ -34,18 +34,21 @@ var client
 var uloziste = window.localStorage
 // nacteni posledni ulozene zakazky pokud, je aplikace spustena poprve nacte se ukazkova zakazka
 var idZAKAZKY = uloziste.zakazka ? Number(uloziste.zakazka) : 1
-var MERENI = []
+var naZakazky
+var MERENI
 var vyskaAnteny
 
 var NTRIPcon = {
   pripojeno: false,
+  mntpID: 0,
   ZDtabulka: []
 }
 
 var UBX = {
   bool: false,
   nazevZakazky: "",
-  nazevSouboru: ""
+  nazevSouboru: "",
+  RAW: new Uint8Array()
 }
 
 var DATA = {
@@ -73,9 +76,9 @@ var DRUZICE = {
 var intInfoMereni = null
 var intMereni = null
 var intVytyceni = null
+var ntripInt = null
 var BodVytyc
 var sky
-var pozadi = false
 
 var app = {
   // kontruktor aplikace
@@ -86,6 +89,7 @@ var app = {
     eventy()
     database.initDB()
     database.vytvorTabulky()
+    database.nazevZakazky(idZAKAZKY)
     vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
     client = new Socket() // TCP/NTRIP client
 
@@ -126,14 +130,6 @@ app.initialize()
     icon: "img/home.svg"
 }); */
 
-/* function pozadi(){
-    var counter=0;
-
-    while(pozadi){
-        console.log("aa");
-    }
-} */
-var RAW = []
 function nactiData(pripojeno) {
   // tato funkce zkontroluje pripojeni k arduinu/gnns prijimaci a pokud je pripojen, zacne
   // ukladat data prijata v nmea zpravach..
@@ -171,28 +167,6 @@ function nactiData(pripojeno) {
     }
   )
 
-  /* bluetoothSerial.subscribeRawData(
-    function(data) {
-      console.log(data)
-      //RAW.push(data)
-      var bytes = new Uint8Array(data)
-      bytes.forEach(b => {
-        RAW.push(b)
-      })
-      //console.log(data)
-      //console.log(bytes)
-      //console.log(String.fromCharCode.apply(null, bytes))
-
-      if (RAW.length > 1000) {
-        var BL = new Blob(RAW)
-        ulozRawData("UBX", "funkcniQQ", BL)
-      }
-    },
-    () => {
-      console.log("Chyba v prijmu dat!!")
-    }
-  ) */
-
   if (pripojeno) {
     bluetoothSerial.subscribe(
       "\n",
@@ -208,42 +182,31 @@ function nactiData(pripojeno) {
           if (zacGGA != -1) {
             // data obsahuji GGA zpravu
             prekladNMEA(data.slice(zacGGA - 1), ulozeniGnnsDat)
-
-            if (UBX.bool) {
-              // ulozRawData(
-              // UBX.nazevZakazky,
-              // UBX.nazevSouboru,
-              // data.slice(0, zacGGA - 1)
-              //)
-              unpack(data.slice(0, zacGGA - 1))
-            }
-          } else {
-            // data neobsahuji GGA zpravu
-            if (UBX.bool) {
-              //ulozRawData(UBX.nazevZakazky, UBX.nazevSouboru, data)
-              unpack(data)
-            }
           }
         }
       },
       false
     )
+
+    bluetoothSerial.subscribeRawData(function(data) {
+      // tato metoda vraci zasilana binarni data v podobe ArrayBuffer
+      let newArr = new Uint8Array(data)
+      if (UBX.bool) {
+        UBX.RAW = new Uint8Array([...UBX.RAW, ...newArr])
+        //
+        if (UBX.RAW.length > 10000) {
+          console.log("ukladam!!")
+          ulozRawData(UBX.nazevZakazky, UBX.nazevSouboru, UBX.RAW.buffer)
+          UBX.RAW = new Uint8Array()
+        }
+      }
+    }, false)
   } else {
     // pokud se prijimac odpoji vymazou se nactena data o poloze
     INFsatelity.innerText = "0/0"
     INFble.src = "img/ble_disconnected.svg"
   }
 }
-
-/* function unpack(str) {
-  let bytes = []
-  for (let i = 0; i < str.length; i++) {
-    let char = str.charCodeAt(i)
-    bytes.push(char >>> 8)
-    bytes.push(char & 0xff)
-  }
-  ulozRawData(UBX.nazevZakazky, UBX.nazevSouboru, str)
-} */
 
 function prekladNMEA(veta, ulozeni) {
   // V teto podmince se rozhoduje zda se jedna o vetu, kterou chceme prelozit nebo nikoliv
@@ -622,7 +585,7 @@ function aktivOkno(okno) {
 }
 
 var HTMLnastaveni =
-  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""><img src="img/refresh.svg"/></button> <select id="ble_seznam"> </select> <button id="ble_pripoj">PŘIPOJ BLE</button> </div></div><hr/><div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..." id="NTRIPip"/> <input type="text" placeholder="port..." id="NTRIPport"/> <br/> <button id="NTRIPmntp">MoutnPointy</button> <br/> <select id="mount_seznam"> </select> <br/> <input type="text" placeholder="Uživatelské jméno" id="NTRIPuziv"/> <input type="password" placeholder="Heslo" id="NTRIPheslo"/> <button id="NTRIPpripoj">Připoj</button></div><hr/><div class="nast"><p>Podrobnosti mountpointu</p><div id="mntpTable"></div></div>'
+  '<div class="nast"> <p>Nastavení bluetooth připojení:</p><div> <button id="ble_hledej" class=""><img src="img/refresh.svg"/></button> <select id="ble_seznam"> </select> <button id="ble_pripoj">PŘIPOJ BT</button> </div></div><hr/><div class="nast"> <p>Nastavení NTRIP připojení:</p><input type="text" placeholder="Ip adresa serveru..." id="NTRIPip"/> <input type="text" placeholder="port..." id="NTRIPport"/> <br/> <button id="NTRIPmntp">MoutnPointy</button> <br/> <select id="mount_seznam"> </select> <br/> <input type="text" placeholder="Uživatelské jméno" id="NTRIPuziv"/> <input type="password" placeholder="Heslo" id="NTRIPheslo"/> <button id="NTRIPpripoj">Připoj</button></div><hr/><div class="nast"><p>Podrobnosti mountpointu</p><div id="mntpTable"></div></div>'
 
 var HTMLdomov =
   '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Vytvoř zakázku</option> </select> </div><button id="BTzobrazUlozeneBody">Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTimportBodu">Importuj body</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <img src="img/close.svg" alt=""/> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div><div class="modal" id="modalBody"> <button class="close" id="BTzavriBody"> <img src="img/close.svg" alt=""/> </button> <p class="modalInfo">Uložené body:</p><div class="Seznam" id="modalBodySeznam"></div></div></div>'
@@ -631,7 +594,7 @@ var HTMLdomovOld =
   '<div class="domov"> <div class="zakazkaInfo"> <b>Informace o aktuální zakázce</b><br/> <p id="INFOnazevZakazky">Název zakázky :</p><p id="INFOdatumVytvoreni">Datum vytvoření :</p><p id="INFOpocetBodu">Počet změřených bodů :</p></div><hr/> <div> <div class="BTselect"> <button class="plus" id="BTpridejZakazku">+</button> <select name="zakazky" id="seznamZakazek"> <option value="">Vytvoř zakázku</option> </select> </div><button id="BTzobrazUlozeneBody">Zobraz uložené body</button> </div><hr/> <div> <button id="BTexportMereni">Exportuj měření</button> <button id="BTimportBodu">Importuj body</button> <button id="BTvymazZakazku">Vymaž zakázku</button> </div><div class="modal" id="modalZakazka"> <button class="close" id="BTzavri"> <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 51.976 51.976" style="enable-background:new 0 0 51.976 51.976;" xml:space="preserve" > <g> <path d="M44.373,7.603c-10.137-10.137-26.632-10.138-36.77,0c-10.138,10.138-10.137,26.632,0,36.77s26.632,10.138,36.77,0C54.51,34.235,54.51,17.74,44.373,7.603z M36.241,36.241c-0.781,0.781-2.047,0.781-2.828,0l-7.425-7.425l-7.778,7.778c-0.781,0.781-2.047,0.781-2.828,0c-0.781-0.781-0.781-2.047,0-2.828l7.778-7.778l-7.425-7.425c-0.781-0.781-0.781-2.048,0-2.828c0.781-0.781,2.047-0.781,2.828,0l7.425,7.425l7.071-7.071c0.781-0.781,2.047-0.781,2.828,0c0.781,0.781,0.781,2.047,0,2.828l-7.071,7.071l7.425,7.425C37.022,34.194,37.022,35.46,36.241,36.241z"/> </g> </svg> </button> <p>Název zakázky</p><input type="text" id="INPnazevZakazky"/> <p>Datum</p><input type="date" id="INPdatum"/> <p>Popis</p><textarea id="INPpopis" class="popis"></textarea> <button id="BTzalozZakazku">Založ zakázku</button> </div></div>'
 
 var HTMLmereni =
-  '<div class="mereni"> <label for="nazevBodu">Název bodu :</label> <input type="text" id="MERnazevBodu"/> <label for="vyskaAnteny">Výška antény [m] :</label> <input type="number" id="MERvyskaAnteny"/> <p class="zobrazCas" id="MERzobrazCas">0:01:50</p><input type="range" min="10" max="300" step="5" value="10" class="Slider" id="SliderDobaMereni"/> <button id="BTmereni">MĚŘ</button> <hr/> <table> <tr> <th>Doba měření :</th> <td id="MERcas">0:00:00</td></tr><tr> <th>Zem. šířka :</th> <td id="MERzemSirka"></td><td id="MERlatP"></td></tr><tr> <th>Zem. délka :</th> <td id="MERzemDelka"></td><td id="MERlonP"></td></tr><tr> <th>Výška :</th> <td id="MERvyska"></td><td id="MERaltP"></td></tr><tr> <th>PDOP :</th> <td id="MERpdop"></td></tr></table> </div></div>'
+  '<div class="mereni"> <label for="nazevBodu">Název bodu :</label> <input type="text" id="MERnazevBodu"/> <label for="vyskaAnteny">Výška antény [m] :</label> <input type="number" id="MERvyskaAnteny"/> <p class="zobrazCas" id="MERzobrazCas">0:01:50</p><input type="range" min="10" max="300" step="5" value="10" class="Slider" id="SliderDobaMereni"/> <button id="BTmereni">MĚŘ</button> <hr/> <table> <tr> <th>Doba měření :</th> <td id="MERcas">0:00:00</td></tr><tr> <th>Zem. šířka :</th> <td id="MERzemSirka"></td><td id="MERlatP"></td></tr><tr> <th>Zem. délka :</th> <td id="MERzemDelka"></td><td id="MERlonP"></td></tr><tr> <th>Výška :</th> <td id="MERvyska"></td><td id="MERaltP"></td></tr><tr> <th>PDOP :</th> <td id="MERpdop"></td></tr></table><hr /><button id="BTRaw" class="BTRaw">Logování RAW dat</button></div>'
 
 var HTMLvytyceni =
   '<div class="vytyceni"> <p><b id="VYTcisloBodu">Vytyčení bodu:</b></p><canvas id="VYTcanvas"></canvas> <hr/> <table> <tr> <th>Vzdálenost k bodu :</th> <td id="VYTvzdalBod"></td></tr><tr> <th id="VYTsj">Jdi na sever :</th> <td id="VYTsjHodnota"></td></tr><tr> <th id="VYTvz">Jdi na západ :</th> <td id="VYTvzHodnota"></td></tr></table> <button id="BTpodrobnosti" class="VYTcollapse">Zobraz podrobnosti</button> <div id="podrobnosti" class="collapsible"> <table> <tr> <th>Převýšení :</th> <td id="VYTprevyseni"></td></tr><tr> <th>H :</th> <td id="VYThPresnost"></td></tr><tr> <th>V :</th> <td id="VYTvPresnost"></td></tr></table> </div><hr/> <button id="BTulozBod" class="schovany">Ulož bod</button> <button id="BTvytyceni">Vyber bod k vytyčení</button> <div class="modal" id="modalBody"> <button class="close" id="BTzavriBody"> <img src="img/close.svg" alt=""/> </button> <p class="modalInfo">Vyber bod pro vytyčení:</p><div class="Seznam" id="modalBodySeznam"></div></div></div>'

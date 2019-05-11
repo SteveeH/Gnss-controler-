@@ -12,7 +12,7 @@ Databaze.prototype.initDB = function() {
       var shortName = "DB"
       var version = "1.0"
       var displayName = "DB gnns"
-      var maxSize = 2 * 1024 * 1024 // bajt
+      var maxSize = 2 * 1024 * 1024 // bajtu
       this.mydb = openDatabase(shortName, version, displayName, maxSize)
     }
   } catch (e) {
@@ -30,11 +30,10 @@ Databaze.prototype.vytvorTabulky = function() {
       },
       function(sqlTransaction, sqlError) {
         console.log("Table zakazky err: " + sqlError.message)
-        udelejToast("Zakázka nebyla vytvořena, jméno musí být jedinečné", 500)
       }
     )
     tx.executeSql(
-      "CREATE TABLE IF NOT EXISTS body (id INTEGER PRIMARY KEY AUTOINCREMENT, idZakazky INTEGER, nazevBodu INT NOT NULL, lat FLOAT, lon FLOAT, alt FLOAT,  dLat FLOAT, dLon FLOAT, dAlt FLOAT, sep FLOAT, vyska FLOAT, datum TIMESTAMP DEFAULT (datetime('now','localtime')), typ CHAR)",
+      "CREATE TABLE IF NOT EXISTS body (id INTEGER PRIMARY KEY AUTOINCREMENT, idZakazky INT NOT NULL, nazevBodu INT NOT NULL, lat FLOAT, lon FLOAT, alt FLOAT,  dLat FLOAT, dLon FLOAT, dAlt FLOAT, sep FLOAT, vyska FLOAT, datum TIMESTAMP DEFAULT (datetime('now','localtime')), typ CHAR)",
       [],
       function(sqlTransaction, sqlResultSet) {
         /* console.log("Tabulka body byla zalozena.") */
@@ -74,9 +73,11 @@ Databaze.prototype.vytvorZakazku = function(jmenoZakazky, datum, popis) {
         database.infoZakazka(rs.insertId)
         Select.value = rs.insertId
         idZAKAZKY = rs.insertId
+        database.nazevZakazky(idZAKAZKY)
       },
       function(tx, e) {
         console.log("Error: " + e.message)
+        udelejToast("Zakázka nebyla vytvořena, jméno musí být jedinečné", 500)
       }
     )
   })
@@ -187,6 +188,21 @@ Databaze.prototype.posledniBodZakazky = function(idZakazky, funkce) {
   })
 }
 
+Databaze.prototype.nazevZakazky = function(idZakazky) {
+  this.mydb.transaction(function(transaction) {
+    transaction.executeSql(
+      "SELECT nazev FROM zakazky WHERE id=?",
+      [idZakazky],
+      function(tx, rs) {
+        naZakazky = rs.rows[0]["nazev"]
+      },
+      function(tx, er) {
+        console.log(er)
+      }
+    )
+  })
+}
+
 Databaze.prototype.exportujZakazku = function(idZakazky) {
   let txt = ""
   let nazevZak = ""
@@ -220,11 +236,14 @@ Databaze.prototype.exportujZakazku = function(idZakazky) {
 
               for (let i = 0; i < pocetBodu; i++) {
                 let nazev = rs.rows[i]["nazevBodu"]
-                let lat = rs.rows[i]["lat"]
-                let lon = rs.rows[i]["lon"]
-                let alt = rs.rows[i]["alt"]
-                let sep = rs.rows[i]["sep"]
-                let vyska = rs.rows[i]["vyska"]
+                let lat = zaokrouhli(rs.rows[i]["lat"], 10)
+                let lon = zaokrouhli(rs.rows[i]["lon"], 10)
+                let alt = zaokrouhli(rs.rows[i]["alt"], 3)
+                let dLat = zaokrouhli(rs.rows[i]["dLat"], 10)
+                let dLon = zaokrouhli(rs.rows[i]["dLon"], 10)
+                let dAlt = zaokrouhli(rs.rows[i]["dAlt"], 3)
+                let sep = zaokrouhli(rs.rows[i]["sep"], 3)
+                let vyska = zaokrouhli(rs.rows[i]["vyska"], 3)
                 let typ = rs.rows[i]["typ"]
                 let datum = rs.rows[i]["datum"]
 
