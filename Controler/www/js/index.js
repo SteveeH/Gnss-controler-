@@ -43,7 +43,11 @@ var uloziste = window.localStorage
 // nacteni posledni ulozene zakazky pokud, je aplikace spustena poprve nacte se ukazkova zakazka
 var idZAKAZKY = uloziste.zakazka ? Number(uloziste.zakazka) : 1
 var naZakazky
-var MERENI
+var MERENI = {
+  bool: false,
+  data: [],
+  delkaMereni: 0
+}
 var delkaMereni
 var vyskaAnteny
 
@@ -88,6 +92,8 @@ var intVytyceni = null
 var ntripInt = null
 var BodVytyc
 var sky
+var MERcas
+var BTmereni
 
 // zvuky
 var zvukFix
@@ -110,7 +116,6 @@ var app = {
     // nacteni adresy posledniho pripojeného zarizeni
     bluetoothSerial.isEnabled(
       function() {
-        console.log("Bluetooth je vypnutý!")
         if (uloziste.BTadresa) {
           setTimeout(() => {
             BLEpripojZarizeni(uloziste.BTadresa)
@@ -118,7 +123,6 @@ var app = {
         }
       },
       function() {
-        console.log("Bluetooth je zapnutý!")
         setTimeout(() => {
           udelejToast("Zapni Bluetooth!!")
         }, 3000)

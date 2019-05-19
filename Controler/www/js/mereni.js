@@ -1,6 +1,6 @@
 function eventyMereni() {
   let SLdobaMereni = document.getElementById("SliderDobaMereni")
-  let BTmereni = document.getElementById("BTmereni")
+  BTmereni = document.getElementById("BTmereni")
   let BTRaw = document.getElementById("BTRaw")
   let MERvyskaAnteny = document.getElementById("MERvyskaAnteny")
   let MERnazevBodu = document.getElementById("MERnazevBodu")
@@ -20,6 +20,10 @@ function eventyMereni() {
   database.posledniBodZakazky(idZAKAZKY, cb => {
     MERnazevBodu.value = cb[0]["nazevBodu"] + 1
   })
+
+  if (MERENI.bool) {
+    BTmereni.innerText = "ULOŽ"
+  }
 
   zobrazDobuMereni()
 
@@ -58,8 +62,8 @@ function zobrazDobuMereni() {
 function zacniMerit() {
   let MERnazevBodu = document.getElementById("MERnazevBodu")
   let MERvyskaAnteny = document.getElementById("MERvyskaAnteny")
-  let MERcas = document.getElementById("MERcas")
-  let BTmereni = document.getElementById("BTmereni")
+  MERcas = document.getElementById("MERcas")
+  BTmereni = document.getElementById("BTmereni")
 
   // kontrola vstupnich dat a pripojeni prijimace
   if (gnnsPripojeno) {
@@ -67,21 +71,26 @@ function zacniMerit() {
       udelejToast("Vyplň název bodu a výšku antény.")
     } else {
       console.log("Měřím")
+      MERENI.bool = true
       BTmereni.innerText = "ULOŽ"
       BTmereni.style.backgroundColor = "red"
       // prazdny objekt pro ulozeni merenych dat
-      MERENI = []
+      MERENI.data = []
 
-      delkaMereni = 0
+      MERENI.delkaMereni = 0
 
       intMereni = setInterval(function() {
-        delkaMereni++
+        MERENI.delkaMereni++
+        MERENI.data.push(JSON.parse(JSON.stringify(DATA)))
 
-        MERENI.push(JSON.parse(JSON.stringify(DATA)))
+        if (window.location.hash === "#mereni") {
+          MERcas = document.getElementById("MERcas")
+          MERcas.innerText = delkaMereniSTR(MERENI.delkaMereni)
+        }
 
-        MERcas.innerText = delkaMereniSTR(delkaMereni)
-
-        if (delkaMereni > document.getElementById("SliderDobaMereni").value) {
+        if (
+          MERENI.delkaMereni > document.getElementById("SliderDobaMereni").value
+        ) {
           if (app.status === "paused") {
             cordova.plugins.notification.local.schedule({
               title: "Měřený bod ",
@@ -103,7 +112,7 @@ function zacniMerit() {
 function ulozMereni() {
   let MERnazevBodu = document.getElementById("MERnazevBodu")
   let MERvyskaAnteny = document.getElementById("MERvyskaAnteny")
-  let MERcas = document.getElementById("MERcas")
+  MERcas = document.getElementById("MERcas")
   let noveCislo, stareCislo, vyskaAnteny
 
   // preruseni logovani Raw dat, pokud byla ukladana
@@ -129,9 +138,10 @@ function ulozMereni() {
   MERnazevBodu.value = noveCislo
   // ukonceni zaznamenavani dat
   clearInterval(intMereni)
+  MERENI.bool = false
 
   // analyza namerenych dat + ulozeni
-  ulozZmerenyBod(MERENI, stareCislo, vyskaAnteny)
+  ulozZmerenyBod(MERENI.data, stareCislo, vyskaAnteny)
 }
 
 function ulozZmerenyBod(data, nazevBodu, vyskaAnteny) {
