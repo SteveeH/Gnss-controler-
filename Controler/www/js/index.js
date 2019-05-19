@@ -15,6 +15,14 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
+ *
+ *
+ * PS:
+ * ====
+ * Těm co by v tomto projektu pokračovali a využívali tyto kódy se omlouvám,
+ * za jejich zmatečnost a rozvrstvenní. Byl to můj první pokus o tvorbu Android
+ * aplikace, který nemohl selhat. Proto většinou vyhrála funkcionalita před
+ * strukturou.
  */
 
 /* GLOBALNI PROMENNE */
@@ -65,9 +73,9 @@ var DATA = {
   },
   GSV: { GP: [], GL: [] },
   GSA: { GP: [], GL: [], HDOP: 0, PDOP: 0, VDOP: 0 },
-  GST: { DEVlat: 0, DEVlon: 0, DEValt: 0 }
+  GST: { DEVlat: 0, DEVlon: 0, DEValt: 0 },
+  FixStatus: false
 }
-
 var DRUZICE = {
   GP: [],
   GL: []
@@ -80,6 +88,10 @@ var intVytyceni = null
 var ntripInt = null
 var BodVytyc
 var sky
+
+// zvuky
+var zvukFix
+var zvukNoFix
 
 var app = {
   // kontruktor aplikace
@@ -94,12 +106,27 @@ var app = {
     vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
     client = new Socket() // TCP/NTRIP client
 
+    // Kontrola zapnuti Bluetooh a
     // nacteni adresy posledniho pripojeného zarizeni
-    if (uloziste.BTadresa) {
-      setTimeout(() => {
-        BLEpripojZarizeni(uloziste.BTadresa)
-      }, 1000)
-    }
+    bluetoothSerial.isEnabled(
+      function() {
+        console.log("Bluetooth je vypnutý!")
+        if (uloziste.BTadresa) {
+          setTimeout(() => {
+            BLEpripojZarizeni(uloziste.BTadresa)
+          }, 1000)
+        }
+      },
+      function() {
+        console.log("Bluetooth je zapnutý!")
+        setTimeout(() => {
+          udelejToast("Zapni Bluetooth!!")
+        }, 3000)
+      }
+    )
+    // prirazeni zvuku
+    zvukFix = new Media("/android_asset/www/sound/fix_status.mp3")
+    zvukNoFix = new Media("/android_asset/www/sound/nofix_status.mp3")
 
     domov()
     aktivOkno("domov")
@@ -123,13 +150,6 @@ var app = {
 }
 
 app.initialize()
-
-/* cordova.plugins.notification.local.schedule({
-    title: "GNNS-CVUT",
-    message: "Bod byl změřen.",
-    sound: "sound/tuut.mp3",
-    icon: "img/home.svg"
-}); */
 
 function nactiData(pripojeno) {
   // tato funkce zkontroluje pripojeni k arduinu/gnns prijimaci a pokud je pripojen, zacne
@@ -253,19 +273,39 @@ var ulozeniGnnsDat = function(objekt) {
     switch (objekt.fixType) {
       case "delta": // DGNSS
         INFfix.style.fill = "blue"
+        if (DATA.FixStatus == true) {
+          DATA.FixStatus = false
+          zvukNoFix.play()
+        }
         break
       case "rtk": // RTK - fix
         INFfix.style.fill = "green"
+        if (DATA.FixStatus == false) {
+          DATA.FixStatus = true
+          zvukFix.play()
+        }
         break
       case "frtk": // RTK - float
         INFfix.style.fill = "orange"
+        if (DATA.FixStatus == true) {
+          DATA.FixStatus = false
+          zvukNoFix.play()
+        }
         break
       case "estimated": //
         INFfix.style.fill = "red"
+        if (DATA.FixStatus == true) {
+          DATA.FixStatus = false
+          zvukNoFix.play()
+        }
         break
       default:
         // kodove mereni
         INFfix.style.fill = "black"
+        if (DATA.FixStatus == true) {
+          DATA.FixStatus = false
+          zvukNoFix.play()
+        }
         break
     }
   } else if (typVety === "GSA") {
@@ -341,20 +381,6 @@ function udelejToast(text, delka) {
   navigator.vibrate(delka)
 }
 
-/* function pripojArduino() {
-  bluetoothSerial.connect(
-    "98:D3:32:31:1C:8D",
-    function() {
-      console.log("Arduino připojeno..")
-      gnnsPripojeno = true
-    },
-    function() {
-      console.log("Někde nastala chyba..")
-      gnnsPripojeno = false
-    }
-  )
-} */
-
 function eventy() {
   document.getElementById("domov").addEventListener(
     "click",
@@ -396,22 +422,6 @@ function eventy() {
     },
     false
   )
-
-  //document.getElementById("tlacitko").addEventListener("click", function() {});
-  //document.getElementById("tlacitko").addEventListener("click",function (){var db = window.openDatabase("Database", "1.0", "Cordova Demo", 200000);
-  //db.transaction(populateDB, errorCB, successCB);},false);
-
-  // Prehravani zvuku - musi byt zavedena uplna cesta k souborum
-  /* var troubeni = new Media(
-    "/android_asset/www/sound/tuut.mp3",
-    function() {
-      console.log("hraji");
-    },
-    function(err) {
-      console.log("nehraji:" + JSON.stringify(err));
-    }
-  );
-  troubeni.play(); */
 
   document.addEventListener(
     "backbutton",
@@ -484,22 +494,6 @@ function vytyceni() {
   rodic.innerHTML = HTMLvytyceni
 
   eventyVytyceni()
-
-  /*  var az = setInterval(() => {
-    zobrazAzimuth()
-  }, 500)
-
-  function zobrazAzimuth() {
-    function onSuccess(heading) {
-      console.log("Heading: " + heading.magneticHeading)
-    }
-
-    function onError(error) {
-      console.log("CompassError: " + error.code)
-    }
-
-    navigator.compass.getCurrentHeading(onSuccess, onError)
-  } */
 }
 
 function skyplot() {

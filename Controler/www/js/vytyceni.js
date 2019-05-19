@@ -1,9 +1,3 @@
-// TODO :
-// - ulozeni vytyceneho bodu plus dodatecnych informace
-// - zobrazeni grafu vzdal > 3 m :
-//    - popisky grafu
-// - zobrazeni grafu vzdal < 3 m :
-
 function eventyVytyceni() {
   let BTpodrobnosti = document.getElementById("BTpodrobnosti")
   let BTvytyceni = document.getElementById("BTvytyceni")
@@ -59,9 +53,9 @@ function eventyVytyceni() {
     let sj = zaokrouhli(delka * Math.cos((azimut * Math.PI) / 180), 3)
     let vz = zaokrouhli(delka * Math.sin((azimut * Math.PI) / 180), 3)
 
-    let dlat = zaokrouhli(poziceVyt.lat - poziceStav.lat, 10)
-    let dlon = zaokrouhli(poziceVyt.lon - poziceStav.lon, 10)
-    let dalt = zaokrouhli(poziceVyt.alt - poziceStav.alt + vyskaAnteny, 3)
+    let dlat = zaokrouhli(poziceVyt.lat - poziceStav.lat, 12)
+    let dlon = zaokrouhli(poziceVyt.lon - poziceStav.lon, 12)
+    let dalt = zaokrouhli(poziceVyt.alt - poziceStav.alt + vyskaAnteny, 4)
     if (
       confirm(
         "Opravdu chcete uložit bod??\n" +
@@ -233,7 +227,7 @@ function vytycuj() {
   // vypocet
   let azimut = geodesyAzimuth(poziceStav, poziceVyt)
   let delka = geodesyDistance(poziceStav, poziceVyt)
-  // let vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
+  let vyskaAnteny = parseFloat(uloziste.getItem("vyskaAnteny"))
   let prevyseni = zaokrouhli(poziceVyt.alt - poziceStav.alt + vyskaAnteny, 3)
 
   let sj, vz

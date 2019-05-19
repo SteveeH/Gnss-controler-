@@ -1,6 +1,3 @@
-// TODO:
-// kontrola propojeni k internetu - done
-
 function zdrojovaTabulka(adresa, port) {
   let ODPOVED = ""
   if (navigator.connection.type === "none") {

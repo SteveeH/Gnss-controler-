@@ -1,6 +1,3 @@
-// TODO: - zobrazeni podrobnych informaci o MNTP
-//       - nastaveni konfigurace prijimace
-
 function eventyNastaveni() {
   let BTbleHledej = document.getElementById("ble_hledej")
   let BTblePripoj = document.getElementById("ble_pripoj")

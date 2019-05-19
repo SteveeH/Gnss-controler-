@@ -154,10 +154,10 @@ function ulozZmerenyBod(data, nazevBodu, vyskaAnteny) {
   })
 
   // vypocet prumernych hodnot
-  let pLat = zaokrouhli(lat / ctr, 10)
-  let pLon = zaokrouhli(lon / ctr, 10)
-  let pAlt = zaokrouhli(alt / ctr, 3)
-  let pSep = zaokrouhli(sep / ctr, 3)
+  let pLat = zaokrouhli(lat / ctr, 12)
+  let pLon = zaokrouhli(lon / ctr, 12)
+  let pAlt = zaokrouhli(alt / ctr, 4)
+  let pSep = zaokrouhli(sep / ctr, 4)
 
   // urceni maxmalniho rozdilu od prumeru
   let dLat = 0
@@ -210,9 +210,9 @@ function logovaniRawDat() {
         .slice(2)
 
       str +=
-        datum.getMonth() < 10
-          ? "0" + datum.getMonth().toString()
-          : datum.getMonth().toString()
+        datum.getMonth() + 1 < 10
+          ? "0" + (datum.getMonth() + 1).toString()
+          : (datum.getMonth() + 1).toString()
 
       str +=
         datum.getDate() < 10

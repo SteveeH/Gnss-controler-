@@ -1,9 +1,3 @@
-// TODO:
-// - legenda k grafu
-// - tabulka s podrobnymi info
-//   - zobrazeni zda je satelit pouzity k urceni polohy (GSA)
-//   * graficke zobrazeni
-
 function SKY() {
   if (location.hash === "#skyplot") {
     vykresliSkyplot(maxPolomer, sirka, vyska)
